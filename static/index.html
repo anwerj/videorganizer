@@ -21,15 +21,38 @@
 
         <!-- Main area: video takes all remaining space -->
         <main id="mainArea" class="panel main-panel d-flex flex-column">
+            <!-- in index.html -->
             <div id="playerWrap" class="player-wrap w-100">
-                <video id="mainVideo" controls crossorigin="anonymous"></video>
+                <video id="mainVideo" crossorigin="anonymous"></video>
 
                 <div id="previewCanvasWrap">
                     <canvas id="previewCanvas" width="320" height="180"></canvas>
                 </div>
 
                 <div id="seekOverlay" aria-hidden="true"></div>
+
+                <!-- Custom controls (overlay) -->
+                <div id="controlsBar" class="controls-bar align-items-center">
+                    <div id="progressWrapper" class="flex-grow-1 me-3" style="height:10px; display:flex; align-items:center;">
+                        <div id="progressBar"
+                            style="height:6px; width:100%; background:rgba(255,255,255,0.08); border-radius:3px; cursor:pointer; position:relative;">
+                            <div id="progressFill" style="height:100%; width:0%; background:var(--accent); border-radius:3px;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="controls-buttons d-flex">
+                        <button id="btnPlay" class="btn btn-sm btn-light me-2" title="Play/Pause">►</button>
+                        <button id="btnPrev" class="btn btn-sm btn-light me-2" title="Prev">⟲</button>
+                        <button id="btnNext" class="btn btn-sm btn-light me-2" title="Next">⟳</button>
+
+                        <div id="timeDisplay" class="mono small-muted me-3">0:00 / 0:00</div>
+                        <input id="vol" type="range" min="0" max="1" step="0.01" value="1" style="width:110px" title="Volume" />
+                        <button id="btnFull" class="btn btn-sm btn-light ms-2" title="Fullscreen">[ ]</button>
+                        <button id="btnRotate" class="btn btn-sm btn-light ms-2" title="Rotate">⤾</button>
+                    </div>
+                </div>
             </div>
+
 
             <div id="fileLabel" class="mt-2 small-muted mono"></div>
         </main>
@@ -55,9 +78,6 @@
                     </div>
                     <div id="msg" class="mono mt-2"></div>
                 </div>
-                <div class="modal-footer">
-                    <button id="renameBtn" class="btn btn-primary">Rename</button>
-                </div>
             </div>
         </div>
     </div>
@@ -81,7 +101,13 @@
     <!-- BOOTSTRAP JS (CDN) - must come before app.js -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Your app JS -->
-    <script src="/static/app.js" defer></script>
+    <script type="module" src="/static/js/controls.js"></script>
+    <script type="module" src="/static/js/modals.js"></script>
+    <script type="module" src="/static/js/player.js"></script>
+    <script type="module" src="/static/js/rename-flow.js"></script>
+    <script type="module" src="/static/js/tree.js"></script>
+    <script type="module" src="/static/js/main.js"></script>
+
 </body>
 
 </html>

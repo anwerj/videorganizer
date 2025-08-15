@@ -76,11 +76,12 @@ body {
     position: absolute;
     left: 0;
     right: 0;
-    bottom: 17px;
+    bottom: 50px;
     height: 50px;
     cursor: crosshair;
     background: rgba(255, 255, 255, 0.01);
     pointer-events: auto;
+    z-index: 99;
 }
 
 #previewCanvasWrap {
@@ -93,6 +94,7 @@ body {
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
     display: none;
     border: 1px solid var(--accent);
+    z-index: 98;
 }
 
 #previewCanvas {
@@ -116,6 +118,9 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+.file-item-selected {
+    color: deeppink;
 }
 
 .file-item:hover {
@@ -157,4 +162,27 @@ body {
 
 .accordion-body {
     padding: 0.5rem 0.5rem 0.75rem 0.5rem;
+}
+
+
+/* controls bar — fixed inside playerWrap, above the video */
+.controls-bar {
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 8px;
+    z-index: 60;
+    padding: 0px;
+    border-radius: 8px;
+    align-items: center;
+}
+
+.controls-bar .controls-buttons {
+    margin-top: 10px;
+    float: right;
+}
+
+/* make sure the controls bar itself does not rotate */
+.player-wrap>.controls-bar {
+    transform: none !important;
 }

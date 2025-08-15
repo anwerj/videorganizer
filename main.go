@@ -164,7 +164,7 @@ func serveIndex(w http.ResponseWriter, r *http.Request) {
 	// Serve static/index.html
 	f, err := staticFS.Open("static/index.html")
 	if err != nil {
-		http.Error(w, "index not found", http.StatusInternalServerError)
+		handleError(w, "index not found", http.StatusInternalServerError, err)
 		return
 	}
 	defer f.Close()
@@ -202,7 +202,7 @@ func apiTree(w http.ResponseWriter, req *http.Request) {
 	fmt.Printf("Building Tree with root:%s and search:%s\n", RootDir, search)
 	tree, err := buildTree(RootDir, search)
 	if err != nil {
-		http.Error(w, "failed to build tree", http.StatusInternalServerError)
+		handleError(w, "failed to build tree", http.StatusInternalServerError, err)
 		return
 	}
 	writeJSON(w, tree)
@@ -253,23 +253,23 @@ func apiStream(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	path := q.Get("path")
 	if path == "" {
-		http.Error(w, "path required", http.StatusBadRequest)
+		handleError(w, "path required", http.StatusBadRequest, nil)
 		return
 	}
 	filePath, err := safeJoin(RootDir, path)
 	if err != nil {
-		http.Error(w, "invalid path", http.StatusBadRequest)
+		handleError(w, "invalid path", http.StatusBadRequest, err)
 		return
 	}
 	fi, err := os.Stat(filePath)
 	if err != nil || fi.IsDir() {
-		http.Error(w, "file not found", http.StatusNotFound)
+		handleError(w, "file not found", http.StatusNotFound, err)
 		return
 	}
 	size := fi.Size()
 	f, err := os.Open(filePath)
 	if err != nil {
-		http.Error(w, "cannot open file", http.StatusInternalServerError)
+		handleError(w, "cannot open file", http.StatusInternalServerError, err)
 		return
 	}
 	defer f.Close()
@@ -293,13 +293,13 @@ func apiStream(w http.ResponseWriter, r *http.Request) {
 	start, end, err := parseRange(rangeHeader, size)
 	if err != nil || start < 0 || end >= size || start > end {
 		w.Header().Set("Content-Range", fmt.Sprintf("bytes */%d", size))
-		http.Error(w, "Requested Range Not Satisfiable", http.StatusRequestedRangeNotSatisfiable)
+		handleError(w, "Requested Range Not Satisfiable", http.StatusRequestedRangeNotSatisfiable, err)
 		return
 	}
 	chunkSize := end - start + 1
 	_, err = f.Seek(start, io.SeekStart)
 	if err != nil {
-		http.Error(w, "seek failed", http.StatusInternalServerError)
+		handleError(w, "seek failed", http.StatusInternalServerError, err)
 		return
 	}
 	w.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", start, end, size))
@@ -340,27 +340,27 @@ func apiRename(w http.ResponseWriter, r *http.Request) {
 	}
 	var req Req
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid json", http.StatusBadRequest)
+		handleError(w, "invalid json", http.StatusBadRequest, err)
 		return
 	}
 	if req.Path == "" || req.NewName == "" {
-		http.Error(w, "path and new_name required", http.StatusBadRequest)
+		handleError(w, "path and new_name required", http.StatusBadRequest, nil)
 		return
 	}
 	// new_name must be filename only (no slashes)
 	if strings.ContainsAny(req.NewName, "/\\") {
-		http.Error(w, "new_name must be filename only", http.StatusBadRequest)
+		handleError(w, "new_name must be filename only", http.StatusBadRequest, nil)
 		return
 	}
 
 	// Resolve the existing path safely inside RootDir
 	oldPath, err := safeJoin(RootDir, req.Path)
 	if err != nil {
-		http.Error(w, "invalid path", http.StatusBadRequest)
+		handleError(w, "invalid path", http.StatusBadRequest, err)
 		return
 	}
 	if _, err := os.Stat(oldPath); err != nil {
-		http.Error(w, "file not found", http.StatusNotFound)
+		handleError(w, "file not found", http.StatusNotFound, err)
 		return
 	}
 
@@ -371,26 +371,27 @@ func apiRename(w http.ResponseWriter, r *http.Request) {
 	// Ensure newPath stays inside RootDir
 	absNew, err := filepath.Abs(newPath)
 	if err != nil {
-		http.Error(w, "invalid new name", http.StatusBadRequest)
+		handleError(w, "invalid new name", http.StatusBadRequest, err)
 		return
 	}
 	absRoot, err := filepath.Abs(RootDir)
 	if err != nil {
-		http.Error(w, "server error", http.StatusInternalServerError)
+		handleError(w, "server error", http.StatusInternalServerError, err)
 		return
 	}
 	// allow exact root match or prefix with path separator to avoid partial matches
 	if !(absNew == absRoot || strings.HasPrefix(absNew, absRoot+string(os.PathSeparator))) {
-		http.Error(w, "invalid new name", http.StatusBadRequest)
+		handleError(w, "invalid new name", http.StatusBadRequest, err)
 		return
 	}
 
 	if err := os.Rename(oldPath, newPath); err != nil {
-		http.Error(w, "rename failed", http.StatusInternalServerError)
+		handleError(w, "rename failed:"+err.Error(), http.StatusInternalServerError, err)
 		return
 	}
 	resp := map[string]any{
 		"ok":       true,
+		"old_path": oldPath,
 		"new_path": filepath.ToSlash(strings.TrimPrefix(absNew, absRoot+string(os.PathSeparator))),
 	}
 	writeJSON(w, resp)
@@ -428,21 +429,21 @@ func main() {
 	// API
 	mux.HandleFunc("/api/tree", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			handleError(w, "method not allowed", http.StatusMethodNotAllowed, err)
 			return
 		}
 		apiTree(w, r)
 	})
 	mux.HandleFunc("/api/stream", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			handleError(w, "method not allowed", http.StatusMethodNotAllowed, err)
 			return
 		}
 		apiStream(w, r)
 	})
 	mux.HandleFunc("/api/rename", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+			handleError(w, "method not allowed", http.StatusMethodNotAllowed, err)
 			return
 		}
 		apiRename(w, r)
@@ -466,4 +467,12 @@ func logRequest(h http.Handler) http.Handler {
 		h.ServeHTTP(w, r)
 		log.Printf("%s %s %s in %s", r.RemoteAddr, r.Method, r.URL.Path, time.Since(start))
 	})
+}
+
+func handleError(w http.ResponseWriter, message string, code int, err error) {
+	if err != nil {
+		message += ": " + err.Error()
+	}
+	fmt.Printf("[Error] (%d) %s", code, message)
+	http.Error(w, message, code)
 }
