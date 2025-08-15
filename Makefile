@@ -11,7 +11,7 @@ build:
 	$(MAKE) build-windows-amd64
 	$(MAKE) build-darwin-arm64
 
-watch-copy:
+watch-command:
 	echo "watchexec --restart --exts go,html,css,js --ignore .git -- go run main.go" | pbcopy
 
 .PHONY: build build-windows-amd64 build-darwin-arm64 watch

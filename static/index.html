@@ -12,53 +12,76 @@
     <!-- Optional: Icon font -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
     <link rel="stylesheet" href="/static/style.css">
-
 </head>
 
 <body>
     <div id="app" class="app-grid">
-        <div id="leftTree" class="panel"></div>
+        <!-- Left tree (fixed width) -->
+        <aside id="leftTree" class="panel"></aside>
 
-        <div class="panel d-flex flex-column align-items-center">
-            <div id="playerWrap" class="w-100">
+        <!-- Main area: video takes all remaining space -->
+        <main id="mainArea" class="panel main-panel d-flex flex-column">
+            <div id="playerWrap" class="player-wrap w-100">
                 <video id="mainVideo" controls crossorigin="anonymous"></video>
 
                 <div id="previewCanvasWrap">
                     <canvas id="previewCanvas" width="320" height="180"></canvas>
                 </div>
 
-                <div id="seekOverlay"></div>
+                <div id="seekOverlay" aria-hidden="true"></div>
             </div>
 
-            <div id="fileLabel" class="mt-2 text-muted"></div>
-        </div>
+            <div id="fileLabel" class="mt-2 small-muted mono"></div>
+        </main>
+    </div>
 
-        <div id="rightPanel" class="panel">
-            <h5>Rename / Move</h5>
-
-            <div class="mb-2">
-                <label class="form-label small">Current path</label>
-                <div id="curPath" class="mono p-2 bg-dark rounded"></div>
+    <!-- Rename Modal -->
+    <div class="modal fade" id="renameModal" tabindex="-1" aria-labelledby="renameModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="renameModalLabel">Rename / Move</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label class="form-label small">Current path</label>
+                        <div id="curPath" class="mono p-2 bg-secondary rounded"></div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small">New filename</label>
+                        <input id="newName" type="text" class="form-control" />
+                    </div>
+                    <div id="msg" class="mono mt-2"></div>
+                </div>
+                <div class="modal-footer">
+                    <button id="renameBtn" class="btn btn-primary">Rename</button>
+                </div>
             </div>
-
-            <div class="mb-2">
-                <label class="form-label small">New filename</label>
-                <input id="newName" type="text" class="form-control" />
-            </div>
-
-            <div class="d-grid">
-                <button id="renameBtn" class="btn btn-primary">Rename</button>
-            </div>
-
-            <div id="msg" class="mono mt-2"></div>
         </div>
     </div>
 
-    <!-- Your app JS (unchanged) -->
-    <script src="/static/app.js"></script>
+    <!-- File List Modal (Fullscreen) -->
+    <div class="modal fade" id="fileListModal" tabindex="-1" aria-labelledby="fileListModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content bg-dark text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="fileListModalLabel">File List</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div id="fullFileList" class="p-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    <!-- BOOTSTRAP JS (CDN, optional for components) -->
+    <!-- BOOTSTRAP JS (CDN) - must come before app.js -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Your app JS -->
+    <script src="/static/app.js" defer></script>
 </body>
 
 </html>

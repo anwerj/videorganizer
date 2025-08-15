@@ -64,8 +64,8 @@ func safeJoin(root, rel string) (string, error) {
 
 // buildTree returns a top-level map where the key is the basename of root and the value
 // is a recursive map representing directories and files.
-// Files are represented by their size (int64). Directories are map[string]interface{}.
-func buildTree(root string) (map[string]interface{}, error) {
+// Files are represented by their size (int64). Directories are map[string]any.
+func buildTree(root string, search string) (map[string]any, error) {
 	info, err := os.Stat(root)
 	if err != nil {
 		return nil, err
@@ -75,16 +75,16 @@ func buildTree(root string) (map[string]interface{}, error) {
 	}
 
 	base := filepath.Base(root)
-	node, err := buildNode(root)
+	node, err := buildNode(root, search)
 	if err != nil {
 		return nil, err
 	}
-	return map[string]interface{}{base: node}, nil
+	return map[string]any{base: node}, nil
 }
 
 // buildNode builds a map for a single directory path.
 // Directory entries are keys to nested maps; files map to their file size (int64).
-func buildNode(dir string) (map[string]interface{}, error) {
+func buildNode(dir string, search string) (map[string]any, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
@@ -97,22 +97,31 @@ func buildNode(dir string) (map[string]interface{}, error) {
 	}
 	sort.Strings(names)
 
-	node := make(map[string]interface{}, len(names))
+	node := make(map[string]any, len(names))
 	for _, name := range names {
 		full := filepath.Join(dir, name)
+
 		info, err := os.Stat(full)
 		if err != nil {
 			// skip unreadable entries
 			continue
 		}
 		if info.IsDir() {
-			child, err := buildNode(full)
+			child, err := buildNode(full, search)
 			if err != nil {
 				// if child fails, skip it but continue
 				continue
 			}
+			if len(child) < 1 {
+				continue
+			}
 			node[name] = child
 		} else {
+			// skip if the full name fails the search
+			fmt.Printf("Searching:`%s` in:`%s`\n", search, full)
+			if !matching(full, search) {
+				continue
+			}
 			// file -> store size (as number)
 			node[name] = info.Size()
 		}
@@ -120,25 +129,26 @@ func buildNode(dir string) (map[string]interface{}, error) {
 	return node, nil
 }
 
-func stableSort(s []string) []string {
-	if len(s) <= 1 {
-		return s
+func matching(in string, search string) bool {
+	// empty search matches everything
+	if strings.TrimSpace(search) == "" {
+		return true
 	}
-	// simple builtin
-	// import sort would be cleaner; use it
-	// but to avoid unused imports, use sort package
-	// we will use the sort package here
-	// (bring it inline)
-	// using standard library:
-	// sort.Strings(s)
-	// but write it properly:
-	// We'll import sort below in the imports block if needed.
-	// To keep code straightforward, we'll call sort here:
-	// (the import is already added)
-	return s
+	in = strings.ToLower(in)
+	// split on any whitespace and ignore empty tokens
+	parts := strings.FieldsSeq(strings.ToLower(search))
+	for part := range parts {
+		if part == "" {
+			continue
+		}
+		if !strings.Contains(in, part) {
+			return false
+		}
+	}
+	return true
 }
 
-func writeJSON(w http.ResponseWriter, v interface{}) {
+func writeJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
@@ -187,8 +197,10 @@ func serveStatic(w http.ResponseWriter, r *http.Request) {
 }
 
 // apiTree returns JSON directory tree
-func apiTree(w http.ResponseWriter, _ *http.Request) {
-	tree, err := buildTree(RootDir)
+func apiTree(w http.ResponseWriter, req *http.Request) {
+	search := req.URL.Query().Get("search")
+	fmt.Printf("Building Tree with root:%s and search:%s\n", RootDir, search)
+	tree, err := buildTree(RootDir, search)
 	if err != nil {
 		http.Error(w, "failed to build tree", http.StatusInternalServerError)
 		return
@@ -377,7 +389,7 @@ func apiRename(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "rename failed", http.StatusInternalServerError)
 		return
 	}
-	resp := map[string]interface{}{
+	resp := map[string]any{
 		"ok":       true,
 		"new_path": filepath.ToSlash(strings.TrimPrefix(absNew, absRoot+string(os.PathSeparator))),
 	}
