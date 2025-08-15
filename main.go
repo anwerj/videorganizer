@@ -29,7 +29,7 @@ var staticFS embed.FS
 // ----------------------
 var (
 	ListenAddr = "127.0.0.1:9898"
-	RootDir    = "../../manima/deendurust/004/media" // folder next to binary containing videos
+	RootDir    = "." // folder next to binary containing videos
 	ValidExts  = map[string]bool{
 		".mp4":  true,
 		".mkv":  true,
@@ -389,6 +389,20 @@ func apiRename(w http.ResponseWriter, r *http.Request) {
 // ----------------------
 
 func main() {
+	// allow optional root dir as first positional argument; default to current directory
+	if len(os.Args) > 1 {
+		RootDir = os.Args[1]
+	} else {
+		RootDir = "."
+	}
+
+	// resolve to absolute path for consistency
+	absRoot, err := filepath.Abs(RootDir)
+	if err != nil {
+		log.Fatalf("invalid root directory %q: %v", RootDir, err)
+	}
+	RootDir = absRoot
+
 	// ensure root exists
 	if _, err := os.Stat(RootDir); os.IsNotExist(err) {
 		log.Fatalf("root directory %q not found. create it and add videos", RootDir)
