@@ -203,6 +203,8 @@
                 const relPath = basePath ? basePath + "/" + name : name;
                 const fileDiv = document.createElement("div");
                 fileDiv.className = "file-item";
+                // store the path so we can easily build a flat ordered list later
+                fileDiv.dataset.path = relPath;
                 const left = document.createElement("div");
                 left.style.flex = "1";
                 left.textContent = name;
@@ -245,12 +247,9 @@
         let base = "";
         for (let i = 0; i < segments.length - 1; i++) {
             base = base ? base + "/" + segments[i] : segments[i];
-            const id = makeId(base, ""); // makeId expects name; we want id for folder header -> we created ids using makeId(parentBase, name)
-            // Instead compute id for this folder:
             const folderId = "id-" + base.replace(/[^a-zA-Z0-9]/g, "-");
             const collapseEl = document.getElementById("collapse-" + folderId);
             if (collapseEl && collapseEl.classList.contains("collapse")) {
-                // use Bootstrap Collapse api to show
                 try {
                     const bs = bootstrap.Collapse.getOrCreateInstance(collapseEl, { toggle: false });
                     bs.show();
@@ -258,29 +257,38 @@
             }
         }
         // scroll into view the selected file element if exists
-        const nodes = leftTree.querySelectorAll(".file-item");
-        for (const n of nodes) {
-            const left = n.querySelector("div");
-            if (!left) continue;
-            const name = left.textContent;
-            const parentUl = n.closest(".accordion");
-            // build candidate path by walking up accordion ancestors
-            // simple heuristic: check n.onclick target relPath by triggering; but we can check onclick via function closure is not accessible.
-            // Instead, match by text and nearest parent headers to approximate; easier: set attribute data-path when creating file items.
+        const target = leftTree.querySelector(`.file-item[data-path="${relPath}"]`);
+        if (target) {
+            // wait a tick for accordion open animations to finish, then scroll
+            setTimeout(() => {
+                target.scrollIntoView({ block: "center", behavior: "smooth" });
+            }, 120);
         }
     }
 
-    // We'll slightly improve renderFolderAccordion to set data-path on file items so expandToPath can find them precisely.
-    // To make that work, modify renderFolderAccordion above: when creating fileDiv add fileDiv.dataset.path = relPath;
-    // (For clarity, we will set it now by rewalking and assigning)
-    function setDataPathAttributes() {
-        const fileDivs = leftTree.querySelectorAll(".file-item");
-        fileDivs.forEach(fd => {
-            // if already has data-path skip
-            if (fd.dataset && fd.dataset.path) return;
-            // derive path by computing the chain of folder titles above it
-            // easier: we encoded path when creating; ensure renderFolderAccordion sets dataset.path. If not present, ignore.
+    // return an ordered array of file paths as rendered in the left tree
+    function getOrderedFilePaths() {
+        const nodes = leftTree.querySelectorAll('.file-item');
+        const out = [];
+        nodes.forEach(n => {
+            if (n.dataset && n.dataset.path) out.push(n.dataset.path);
         });
+        return out;
+    }
+
+    // return siblings in same folder (DOM order)
+    function getSiblingPaths(path) {
+        if (!path) return [];
+        const dir = path.includes('/') ? path.slice(0, path.lastIndexOf('/')) : '';
+        const nodes = leftTree.querySelectorAll('.file-item');
+        const out = [];
+        nodes.forEach(n => {
+            const p = n.dataset && n.dataset.path ? n.dataset.path : null;
+            if (!p) return;
+            const pdir = p.includes('/') ? p.slice(0, p.lastIndexOf('/')) : '';
+            if (pdir === dir) out.push(p);
+        });
+        return out;
     }
 
     // rename handler
@@ -352,13 +360,61 @@
     // keyboard shortcuts
     document.addEventListener("keydown", (ev) => {
         if (!mainVideo) return;
-        if (ev.code === "Space") {
+        // Ignore keys when typing in inputs or textareas
+        const active = document.activeElement;
+        if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+
+        // Normalize key
+        const k = (ev.key || '').toString();
+        // Space (prevent default scroll)
+        if (k === ' ' || ev.code === 'Space') {
             ev.preventDefault();
             if (mainVideo.paused) mainVideo.play(); else mainVideo.pause();
-        } else if (ev.code === "ArrowRight") {
+            return;
+        }
+        if (ev.code === 'ArrowRight') {
             mainVideo.currentTime = Math.min(mainVideo.duration || 0, mainVideo.currentTime + 5);
-        } else if (ev.code === "ArrowLeft") {
+            return;
+        }
+        if (ev.code === 'ArrowLeft') {
             mainVideo.currentTime = Math.max(0, mainVideo.currentTime - 5);
+            return;
+        }
+
+        // Next (C) and Previous (V)
+        const lower = k.toLowerCase();
+        if (lower === 'c' || lower === 'v') {
+            ev.preventDefault();
+            if (!currentPath) return;
+            // use siblings within same folder
+            const siblings = getSiblingPaths(currentPath);
+            const idx = siblings.indexOf(currentPath);
+            if (idx === -1) return;
+            if (lower === 'c') {
+                // next
+                if (idx < siblings.length - 1) {
+                    const next = siblings[idx + 1];
+                    setHashPath(next);
+                    setCurrent(next, true);
+                    expandToPath(next);
+                }
+            } else {
+                // previous
+                if (idx > 0) {
+                    const prev = siblings[idx - 1];
+                    setHashPath(prev);
+                    setCurrent(prev, true);
+                    expandToPath(prev);
+                }
+            }
+        }
+        if (lower === 'x') {
+            mainVideo.currentTime = Math.min(mainVideo.duration || 0, mainVideo.currentTime + 3);
+            return;
+        }
+        if (lower === 'z') {
+            mainVideo.currentTime = Math.max(0, mainVideo.currentTime - 3);
+            return;
         }
     });
 
