@@ -127,6 +127,28 @@ export function initPlayer(api, elms, helpers = {}) {
         seekOverlay.addEventListener("click", onClickSeek);
     }
 
+    // time display
+    const timeDisplayEl = document.getElementById("timeDisplay") || null;
+    function formatTime(sec) {
+        if (!sec || isNaN(sec) || !isFinite(sec)) return "0:00";
+        const s = Math.floor(sec);
+        const m = Math.floor(s / 60);
+        const rem = s % 60;
+        return `${m}:${String(rem).padStart(2, '0')}`;
+    }
+    if (timeDisplayEl && mainVideo) {
+        const updateTimeDisplay = () => {
+            const cur = mainVideo.currentTime || 0;
+            const dur = mainVideo.duration && !isNaN(mainVideo.duration) && isFinite(mainVideo.duration) ? mainVideo.duration : 0;
+            timeDisplayEl.textContent = `${formatTime(cur)} / ${formatTime(dur)}`;
+        };
+        mainVideo.addEventListener('timeupdate', updateTimeDisplay);
+        mainVideo.addEventListener('loadedmetadata', updateTimeDisplay);
+        mainVideo.addEventListener('durationchange', updateTimeDisplay);
+        // initialize display
+        updateTimeDisplay();
+    }
+
     // expose API
     return {
         setCurrent,

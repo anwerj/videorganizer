@@ -28,15 +28,31 @@ var staticFS embed.FS
 // Configuration
 // ----------------------
 var (
+	config     Config
 	ListenAddr = "127.0.0.1:9898"
 	RootDir    = "." // folder next to binary containing videos
-	ValidExts  = map[string]bool{
-		".mp4":  true,
-		".mkv":  true,
-		".mov":  true,
-		".webm": true,
-	}
 )
+
+var defaultConfig = `{
+    "Addr" : "127.0.0.1:9898",
+    "Exts" : {
+        "mp4":  true,
+        "mkv":  true,
+        "mov":  true,
+        "webm": true
+    }
+}`
+
+type Config struct {
+	Addr string          `json:"Addr"`
+	Exts map[string]bool `json:"Exts"`
+}
+
+func (c Config) IsExtDisabled(name string) bool {
+	ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(name)), ".")
+	// fmt.Printf("name:%s(ext:%s) in %v\n", name, ext, c.Exts)
+	return !c.Exts[ext]
+}
 
 // ----------------------
 // Helpers
@@ -119,7 +135,11 @@ func buildNode(dir string, search string) (map[string]any, error) {
 		} else {
 			// skip if the full name fails the search
 			fmt.Printf("Searching:`%s` in:`%s`\n", search, full)
-			if !matching(full, search) {
+			if !searching(full, search) {
+				continue
+			}
+			// If ext is disabled, skip
+			if config.IsExtDisabled(name) {
 				continue
 			}
 			// file -> store size (as number)
@@ -129,7 +149,7 @@ func buildNode(dir string, search string) (map[string]any, error) {
 	return node, nil
 }
 
-func matching(in string, search string) bool {
+func searching(in string, search string) bool {
 	// empty search matches everything
 	if strings.TrimSpace(search) == "" {
 		return true
@@ -416,6 +436,9 @@ func main() {
 	}
 	RootDir = absRoot
 
+	// Check if RootDir has video
+	setConfig(RootDir)
+
 	// ensure root exists
 	if _, err := os.Stat(RootDir); os.IsNotExist(err) {
 		log.Fatalf("root directory %q not found. create it and add videos", RootDir)
@@ -450,13 +473,13 @@ func main() {
 	})
 
 	srv := &http.Server{
-		Addr:         ListenAddr,
+		Addr:         config.Addr,
 		Handler:      logRequest(mux),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 0, // streaming may take long
 		IdleTimeout:  120 * time.Second,
 	}
-	log.Printf("starting server on http://%s  (root=%s)\n", ListenAddr, RootDir)
+	log.Printf("starting server on http://%s  (root=%s)\n", config.Addr, RootDir)
 	log.Fatal(srv.ListenAndServe())
 }
 
@@ -473,6 +496,24 @@ func handleError(w http.ResponseWriter, message string, code int, err error) {
 	if err != nil {
 		message += ": " + err.Error()
 	}
-	fmt.Printf("[Error] (%d) %s", code, message)
-	http.Error(w, message, code)
+	fmt.Printf("[Error] (%d) %s\n", code, message)
+	if w != nil {
+		http.Error(w, message, code)
+	}
+}
+
+func setConfig(root string) {
+	configPath := filepath.Join(root, "videorganizer.config.json")
+	content, err := os.ReadFile(configPath)
+	if err != nil {
+		handleError(nil, "could not find config", 400, err)
+		content = []byte(defaultConfig)
+	}
+	fmt.Println("Starting with config:\n" + string(content))
+
+	err = json.Unmarshal(content, &config)
+	if err != nil {
+		handleError(nil, "could not load config", 400, err)
+		os.Exit(1)
+	}
 }

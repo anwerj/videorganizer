@@ -28,7 +28,7 @@ body {
 .panel {
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.02));
     border-radius: 8px;
-    padding: 10px;
+    padding: 0px;
     overflow: auto;
     min-height: 0;
     /* allow flex children to size correctly */
@@ -36,7 +36,7 @@ body {
 
 /* left sidebar styles */
 #leftTree {
-    padding: 8px 10px;
+    padding: 0px;
 }
 
 /* main area: let player take available vertical space */
@@ -103,6 +103,10 @@ body {
     display: block;
 }
 
+#timeDisplay {
+    line-height: 35px;
+}
+
 .mono {
     font-family: monospace;
     font-size: 13px;
@@ -113,11 +117,12 @@ body {
 .file-item {
     cursor: pointer;
     color: darkgreen;
-    padding: 6px;
-    border-radius: 4px;
+    padding: 10px 6px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    font-size: 0.8rem;
+    border-bottom: 1px solid var(--accent);
 }
 .file-item-selected {
     color: deeppink;
@@ -175,6 +180,11 @@ body {
     padding: 0px;
     border-radius: 8px;
     align-items: center;
+    opacity: 0;;
+}
+
+.controls-bar:hover{
+    opacity: 1;
 }
 
 .controls-bar .controls-buttons {

@@ -1,8 +1,11 @@
 package main
 
-import "testing"
+import (
+	"encoding/json"
+	"testing"
+)
 
-func TestMatching(t *testing.T) {
+func TestSearching(t *testing.T) {
 	tests := [][]string{
 		{"/videos/movie.mp4", "movie", "true"},
 		{"/videos/movie.mp4", "MOVIE", "true"},
@@ -63,10 +66,33 @@ func TestMatching(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		result := matching(test[0], test[1])
+		result := searching(test[0], test[1])
 		want := test[2] == "true"
 		if result != want {
 			t.Fatalf("Expected %v for `%s` in `%s`, got %v", want, test[1], test[0], result)
+		}
+	}
+}
+
+func TestDefaultConfig(t *testing.T) {
+	cnf := Config{}
+	err := json.Unmarshal([]byte(defaultConfig), &cnf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tests := [][]string{
+		{"/videos/movie.mp4", "true"},
+		{"/videos/movie.Mp4", "true"},
+		{"/videos/movie.MP4", "true"},
+		{"/videos/movie.mkv", "true"},
+		{"/videos/movie.webm", "true"},
+		{"/videos/.DStore", "false"},
+	}
+	for _, test := range tests {
+		enabled := !cnf.IsExtDisabled(test[0])
+		expected := test[1] == "true"
+		if enabled != expected {
+			t.Fatalf("Expected %v for `%s` in `%s`, got %v", expected, test[1], test[0], enabled)
 		}
 	}
 }
