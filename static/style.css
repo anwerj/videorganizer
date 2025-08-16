@@ -3,6 +3,9 @@
     --panel: #0b1220;
     --text: #c2ddff;
     --accent: #e1f2ff;
+    --bs-accordion-bg: #333;
+    --medium: #4b63a0;
+    --dark: #304067;
 }
 
 html,
@@ -116,16 +119,16 @@ body {
 
 .file-item {
     cursor: pointer;
-    color: darkgreen;
+    color: var(--medium);
     padding: 10px 6px;
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 0.8rem;
-    border-bottom: 1px solid var(--accent);
+    border-bottom: 1px solid var(--dark);
 }
 .file-item-selected {
-    color: deeppink;
+    color: var(--text);
 }
 
 .file-item:hover {
@@ -195,4 +198,71 @@ body {
 /* make sure the controls bar itself does not rotate */
 .player-wrap>.controls-bar {
     transform: none !important;
+}
+
+
+/* ---------- Dark accordion overrides (place after Bootstrap CSS) ---------- */
+
+.accordion {
+    --bs-accordion-border-width: 0;
+    gap: 8px;
+}
+
+/* item container */
+.accordion .accordion-item {
+    background: transparent;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    overflow: hidden;
+}
+
+/* header button */
+.accordion-button {
+    background: transparent;
+    color: var(--text);
+    padding: .5rem .75rem;
+    font-weight: 600;
+    box-shadow: none;
+    border: none;
+    align-items: center;
+}
+
+/* collapsed state (when closed) - slightly subdued */
+.accordion-button.collapsed {
+    color: #9fbcea;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(0, 0, 0, 0.01));
+}
+
+/* expanded state */
+.accordion-button:not(.collapsed) {
+    color: var(--accent);
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+}
+
+/* remove default focus outline and replace with subtle ring */
+.accordion-button:focus {
+    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08);
+    outline: none;
+}
+
+/* chevron: ensure it follows current color (Bootstrap's icon uses currentColor) */
+.accordion-button::after {
+    /* prefer using currentColor (Bootstrap uses an SVG that respects currentColor) */
+    color: inherit;
+    opacity: 0.95;
+    /* slightly shift chevron closer to text */
+    margin-left: .5rem;
+}
+
+/* body */
+.accordion-body {
+    color: var(--text);
+    padding: .5rem .75rem .75rem .75rem;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.005), rgba(0, 0, 0, 0.005));
+}
+
+/* small tweaks for nested accordions/file items */
+.accordion .file-item {
+    background: transparent;
+    padding: 6px;
 }

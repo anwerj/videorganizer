@@ -19,6 +19,15 @@ export function initControls({ player, tree, modals }) {
         if (mainVideo.paused) mainVideo.play().catch(() => { });
         else mainVideo.pause();
     }
+
+    function forward(duration) {
+        mainVideo.currentTime = Math.min(mainVideo.duration || 0, mainVideo.currentTime + duration);
+    }
+
+    function backward(duration) {
+        mainVideo.currentTime = Math.max(0, mainVideo.currentTime - 3);
+    }
+
     btnPlay?.addEventListener("click", togglePlay);
     mainVideo.addEventListener("play", () => { if (btnPlay) btnPlay.textContent = "❚❚"; });
     mainVideo.addEventListener("pause", () => { if (btnPlay) btnPlay.textContent = "►"; });
@@ -80,6 +89,8 @@ export function initControls({ player, tree, modals }) {
         if (k === "r") { ev.preventDefault(); player.rotateVideoClockwise?.(); return; }
         if (k === "e") { ev.preventDefault(); window.dispatchEvent(new CustomEvent("open-rename-modal")); return; }
         if (k === "l") { ev.preventDefault(); window.dispatchEvent(new CustomEvent("open-filelist-modal")); return; }
+        if (k === "z") {ev.preventDefault(); backward(3); return}
+        if (k === "x") {ev.preventDefault(); forward(3); return}
     });
 
     return { togglePlay };

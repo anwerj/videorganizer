@@ -68,7 +68,7 @@ export function initPlayer(api, elms, helpers = {}) {
             mainVideo.style.maxWidth = `${Math.floor(maxH)}px`;
             mainVideo.style.maxHeight = `${Math.floor(maxW)}px`;
             // rotated: prefer height-based sizing so video fits inside parent
-            mainVideo.style.width = "auto";
+            mainVideo.style.width = "100%";
             mainVideo.style.height = "auto";
             mainVideo.style.objectFit = "contain";
         } else {

@@ -24,7 +24,7 @@ export function initRenameFlow(api, elms, { goToNextSibling, player }) {
                 setMsg("rename error: " + txt);
                 return;
             }
-            setMsg("renamed:" + payload.currentPath + " to " + payload.new_name );
+            setMsg("renamed:" + payload.path + " to " + payload.new_name );
         } catch (e) {
             setMsg("rename failed");
             console.error(e);

@@ -112,7 +112,7 @@ export function initTree(api, elms) {
                     window.dispatchEvent(new CustomEvent("file-selected", { detail: relPath }));
                 };
                 const right = document.createElement("small");
-                right.className = "text-muted ms-2";
+                right.className = "ms-2";
                 right.textContent = typeof val === "number" ? humanSize(val) : "";
                 fileDiv.appendChild(left);
                 fileDiv.appendChild(right);
