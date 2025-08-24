@@ -269,7 +269,7 @@ func parseRange(rangeHeader string, size int64) (start, end int64, err error) {
 }
 
 // apiStream streams with Range support
-func apiStream(w http.ResponseWriter, r *http.Request) {
+func apiStreamReal(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	path := q.Get("path")
 	if path == "" {
@@ -349,6 +349,42 @@ func apiStream(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+}
+
+func apiStream(w http.ResponseWriter, r *http.Request) {
+	q := r.URL.Query()
+	path := q.Get("path")
+	if path == "" {
+		handleError(w, "path required", http.StatusBadRequest, nil)
+		return
+	}
+	filePath, err := safeJoin(RootDir, path)
+	if err != nil {
+		handleError(w, "invalid path", http.StatusBadRequest, err)
+		return
+	}
+	fi, err := os.Stat(filePath)
+	if err != nil || fi.IsDir() {
+		handleError(w, "file not found", http.StatusNotFound, err)
+		return
+	}
+
+	f, err := os.Open(filePath)
+	if err != nil {
+		handleError(w, "cannot open file", http.StatusInternalServerError, err)
+		return
+	}
+	// Do NOT defer f.Close() until after ServeContent returns; we can still defer here,
+	// but keep in mind ServeContent will read from f synchronously.
+	defer f.Close()
+
+	ctype := mime.TypeByExtension(strings.ToLower(filepath.Ext(filePath)))
+	if ctype == "" {
+		ctype = "application/octet-stream"
+	}
+	w.Header().Set("Content-Type", ctype)
+	// Let http.ServeContent handle range requests, If-Modified-Since, Content-Length, etc.
+	http.ServeContent(w, r, fi.Name(), fi.ModTime(), f)
 }
 
 // apiRename renames a file safely
