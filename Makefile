@@ -1,7 +1,10 @@
 
 build-windows-amd64:
 	rm videorganizer-windows-amd64.exe
-	GOOS=windows GOARCH=amd64 go build -o videorganizer-windows-amd64.exe main.go
+	# static, reproducible cross build (no cgo)
+	env CGO_ENABLED=0 GOOS=windows GOARCH=amd64 \
+		go build -trimpath -ldflags="-s -w" \
+		-o videorganizer-windows-amd64.exe main.go
 
 build-darwin-arm64:
 	rm videorganizer-darwin-arm64
