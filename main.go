@@ -81,7 +81,7 @@ func safeJoin(root, rel string) (string, error) {
 // buildTree returns a top-level map where the key is the basename of root and the value
 // is a recursive map representing directories and files.
 // Files are represented by their size (int64). Directories are map[string]any.
-func buildTree(root string, search string) (map[string]any, error) {
+func buildTree(root string, search string, includeOrganized bool) (map[string]any, error) {
 	info, err := os.Stat(root)
 	if err != nil {
 		return nil, err
@@ -91,7 +91,7 @@ func buildTree(root string, search string) (map[string]any, error) {
 	}
 
 	base := filepath.Base(root)
-	node, err := buildNode(root, search)
+	node, err := buildNode(root, search, includeOrganized)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +100,7 @@ func buildTree(root string, search string) (map[string]any, error) {
 
 // buildNode builds a map for a single directory path.
 // Directory entries are keys to nested maps; files map to their file size (int64).
-func buildNode(dir string, search string) (map[string]any, error) {
+func buildNode(dir string, search string, includeOrganized bool) (map[string]any, error) {
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return nil, err
@@ -123,7 +123,7 @@ func buildNode(dir string, search string) (map[string]any, error) {
 			continue
 		}
 		if info.IsDir() {
-			child, err := buildNode(full, search)
+			child, err := buildNode(full, search, includeOrganized)
 			if err != nil {
 				// if child fails, skip it but continue
 				continue
@@ -134,12 +134,16 @@ func buildNode(dir string, search string) (map[string]any, error) {
 			node[name] = child
 		} else {
 			// skip if the full name fails the search
-			fmt.Printf("Searching:`%s` in:`%s`\n", search, full)
+			// fmt.Printf("Searching:`%s` in:`%s`\n", search, full)
 			if !searching(full, search) {
 				continue
 			}
 			// If ext is disabled, skip
 			if config.IsExtDisabled(name) {
+				continue
+			}
+			// Filter organized files if not requested
+			if !includeOrganized && strings.Contains(name, "_ts_") {
 				continue
 			}
 			// file -> store size (as number)
@@ -219,8 +223,9 @@ func serveStatic(w http.ResponseWriter, r *http.Request) {
 // apiTree returns JSON directory tree
 func apiTree(w http.ResponseWriter, req *http.Request) {
 	search := req.URL.Query().Get("search")
-	fmt.Printf("Building Tree with root:%s and search:%s\n", RootDir, search)
-	tree, err := buildTree(RootDir, search)
+	organized := req.URL.Query().Get("organized") == "true"
+	fmt.Printf("Building Tree with root:%s search:%s organized:%v\n", RootDir, search, organized)
+	tree, err := buildTree(RootDir, search, organized)
 	if err != nil {
 		handleError(w, "failed to build tree", http.StatusInternalServerError, err)
 		return

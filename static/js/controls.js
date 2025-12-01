@@ -11,6 +11,8 @@ export function initControls({ player, tree, modals }) {
     const btnRotate = document.getElementById("btnRotate");
     const newNameInput = document.getElementById("newName");
 
+    const btnClose = document.querySelector("#renameModal .btn-close");
+
     // ensure native controls off if previously set
     if (mainVideo.hasAttribute("controls")) mainVideo.removeAttribute("controls");
 
@@ -79,18 +81,31 @@ export function initControls({ player, tree, modals }) {
                 ev.preventDefault();
                 // do not dispatch anything here
             }
+            if (ev.key === "Escape") {
+                // Close modal on Esc even if input is focused
+                ev.preventDefault();
+                if (btnClose) btnClose.click();
+            }
             return;
         }
         const k = (ev.key || "").toLowerCase();
-        if (ev.ctrlKey || ev.metaKey || ev.altKey || ev.shiftKey) {return}
+        if (ev.key === "Escape") {
+            // Close modal on Esc
+            ev.preventDefault();
+            if (btnClose) btnClose.click();
+            return;
+        }
+
+        if (ev.ctrlKey || ev.metaKey || ev.altKey || ev.shiftKey) { return }
         if (k === " ") { ev.preventDefault(); togglePlay(); return; }
         if (k === "c") { ev.preventDefault(); btnNext?.click(); return; }
         if (k === "v") { ev.preventDefault(); btnPrev?.click(); return; }
         if (k === "r") { ev.preventDefault(); player.rotateVideoClockwise?.(); return; }
         if (k === "e") { ev.preventDefault(); window.dispatchEvent(new CustomEvent("open-rename-modal")); return; }
         if (k === "l") { ev.preventDefault(); window.dispatchEvent(new CustomEvent("open-filelist-modal")); return; }
-        if (k === "z") {ev.preventDefault(); backward(3); return}
-        if (k === "x") {ev.preventDefault(); forward(3); return}
+        if (k === "z") { ev.preventDefault(); backward(3); return }
+        if (k === "x") { ev.preventDefault(); forward(3); return }
+        if (k === "t") { ev.preventDefault(); player.addCurrentTimestamp?.(); return }
     });
 
     return { togglePlay };

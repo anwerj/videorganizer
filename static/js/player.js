@@ -96,6 +96,19 @@ export function initPlayer(api, elms, helpers = {}) {
             return;
         }
 
+        // Resize preview canvas when preview video loads
+        previewVideo.onloadedmetadata = () => {
+            if (previewVideo.videoWidth && previewVideo.videoHeight) {
+                const aspect = previewVideo.videoWidth / previewVideo.videoHeight;
+                const w = 320;
+                const h = Math.round(w / aspect);
+                previewCanvas.width = w;
+                previewCanvas.height = h;
+                previewCanvas.style.width = w + "px";
+                previewCanvas.style.height = h + "px";
+            }
+        };
+
         const src = api.stream(path);
         mainVideo.src = src;
         previewVideo.src = src;
@@ -152,27 +165,24 @@ export function initPlayer(api, elms, helpers = {}) {
         if (!seekOverlay || !previewCanvasWrap || !previewCanvas) return;
 
         const overlayRect = seekOverlay.getBoundingClientRect();
-        const host = seekOverlay.closest(".player-wrap") || seekOverlay.parentElement || document.body;
-        const playerRect = host.getBoundingClientRect();
-        const canvasRect = previewCanvas.getBoundingClientRect();
-
         const xInOverlay = Math.min(Math.max(0, e.clientX - overlayRect.left), overlayRect.width);
         const t = (xInOverlay / overlayRect.width) * previewVideo.duration;
 
-        const previewW = canvasRect.width || previewCanvas.width;
-        const previewH = canvasRect.height || previewCanvas.height;
+        // Position preview over the sidebar (left side of screen)
+        // We use fixed positioning to break out of the player container
+        previewCanvasWrap.style.position = "fixed";
+        previewCanvasWrap.style.zIndex = "9999";
 
-        let left = e.clientX - playerRect.left - previewW; // anchor right-bottom to cursor
-        let top = e.clientY - playerRect.top - previewH;
-
-        const margin = 6;
-        left = Math.max(margin, Math.min(left, playerRect.width - previewW - margin));
-        top = Math.max(margin, Math.min(top, playerRect.height - previewH - margin));
-
-        previewCanvasWrap.style.transform = "none";
+        // Target the sidebar area. Assuming sidebar is on the left.
+        // We'll place it at left: 10px, bottom: 80px (above controls approx)
+        // Or we can try to center it vertically in the sidebar if we want.
+        // Let's stick to a fixed position at the bottom-left corner of the window,
+        // which usually covers the bottom of the sidebar.
+        previewCanvasWrap.style.left = "20px";
+        previewCanvasWrap.style.top = "auto";
+        previewCanvasWrap.style.bottom = "100px"; // Above the controls bar usually
         previewCanvasWrap.style.display = "block";
-        previewCanvasWrap.style.left = left + "px";
-        previewCanvasWrap.style.top = top + "px";
+        previewCanvasWrap.style.transform = "none";
 
         const now = performance.now();
         if (now - lastHoverTime < 60) return;
@@ -285,5 +295,10 @@ export function initPlayer(api, elms, helpers = {}) {
         getCurrentPath: () => currentPath,
         // expose read-only timestamps if you ever need them
         getTimestamps: () => [...timestamps],
+        addCurrentTimestamp: () => {
+            if (mainVideo && !isNaN(mainVideo.currentTime)) {
+                addTimestampMs(Math.round(mainVideo.currentTime * 1000));
+            }
+        }
     };
 }

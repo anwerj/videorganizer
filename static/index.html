@@ -34,10 +34,12 @@
                 <!-- Custom controls (overlay) -->
                 <div id="controlsBar" class="controls-bar align-items-center">
                     <div id="seekOverlay" aria-hidden="true"></div>
-                    <div id="progressWrapper" class="flex-grow-1 me-3" style="height:10px; display:flex; align-items:center;">
+                    <div id="progressWrapper" class="flex-grow-1"
+                        style="height:10px; display:flex; align-items:center;">
                         <div id="progressBar"
                             style="height:6px; width:100%; background:rgba(255,255,255,0.08); border-radius:3px; cursor:pointer; position:relative;">
-                            <div id="progressFill" style="height:100%; width:0%; background:var(--accent); border-radius:3px;">
+                            <div id="progressFill"
+                                style="height:100%; width:0%; background:var(--accent); border-radius:3px;">
                             </div>
                         </div>
                     </div>
@@ -47,7 +49,8 @@
                         <button id="btnNext" class="btn btn-sm btn-light me-2" title="Next">⟳</button>
 
                         <div id="timeDisplay" class="mono small-muted me-3">0:00 / 0:00</div>
-                        <input id="vol" type="range" min="0" max="1" step="0.01" value="1" style="width:110px" title="Volume" />
+                        <input id="vol" type="range" min="0" max="1" step="0.01" value="1" style="width:110px"
+                            title="Volume" />
                         <button id="btnFull" class="btn btn-sm btn-light ms-2" title="Fullscreen">[ ]</button>
                         <button id="btnRotate" class="btn btn-sm btn-light ms-2" title="Rotate">⤾</button>
                     </div>

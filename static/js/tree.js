@@ -8,12 +8,14 @@ export function initTree(api, elms) {
     searchWrapper.innerHTML = `
     <div class="input-group">
       <input id="treeSearchInput" class="form-control form-control-sm" placeholder="Search (press Enter)" />
+      <input class="form-check-input mt-0 align-self-center mx-1" type="checkbox" id="treeOrganizedCheck" title="Show organized videos">
       <button id="treeSearchBtn" class="btn btn-sm btn-outline-secondary" type="button">Search</button>
       <button id="treeClearBtn" class="btn btn-sm btn-outline-secondary" type="button">×</button>
     </div>
   `;
     leftTree.appendChild(searchWrapper);
     const searchInput = searchWrapper.querySelector("#treeSearchInput");
+    const organizedCheck = searchWrapper.querySelector("#treeOrganizedCheck");
     const searchBtn = searchWrapper.querySelector("#treeSearchBtn");
     const clearBtn = searchWrapper.querySelector("#treeClearBtn");
 
@@ -26,7 +28,10 @@ export function initTree(api, elms) {
         // clear below search wrapper
         while (leftTree.childNodes.length > 1) leftTree.removeChild(leftTree.lastChild);
 
-        const url = search ? `${api.tree}?search=${encodeURIComponent(search)}` : api.tree;
+        const organized = organizedCheck.checked;
+        let url = api.tree + "?organized=" + organized;
+        if (search) url += "&search=" + encodeURIComponent(search);
+
         const res = await fetch(url);
         if (!res.ok) {
             const n = document.createElement("div");
@@ -201,6 +206,7 @@ export function initTree(api, elms) {
     searchInput.addEventListener("keydown", (e) => { if (e.key === "Enter") loadTree(searchInput.value.trim()); });
     searchBtn.addEventListener("click", () => loadTree(searchInput.value.trim()));
     clearBtn.addEventListener("click", () => { searchInput.value = ""; loadTree(); });
+    organizedCheck.addEventListener("change", () => loadTree(searchInput.value.trim()));
 
     // public API
     return {

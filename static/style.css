@@ -101,8 +101,7 @@ body {
 }
 
 #previewCanvas {
-    width: 320px;
-    height: 180px;
+    /* width/height set by JS or attributes */
     display: block;
 }
 
@@ -127,6 +126,7 @@ body {
     font-size: 0.8rem;
     border-bottom: 1px solid var(--dark);
 }
+
 .file-item-selected {
     color: var(--text);
 }
@@ -144,7 +144,8 @@ body {
 }
 
 .form-control,
-.btn {
+.btn,
+.form-check-input {
     background: rgba(255, 255, 255, 0.02);
     color: var(--text);
     border: 1px solid rgba(255, 255, 255, 0.04);
@@ -183,10 +184,11 @@ body {
     padding: 0px;
     border-radius: 8px;
     align-items: center;
-    opacity: 0;;
+    opacity: 0;
+    ;
 }
 
-.controls-bar:hover{
+.controls-bar:hover {
     opacity: 1;
 }
 
