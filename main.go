@@ -183,18 +183,20 @@ func writeJSON(w http.ResponseWriter, v any) {
 // Handlers
 // ----------------------
 
-// serveIndex serves embedded index.html
-func serveIndex(w http.ResponseWriter, r *http.Request) {
+// serveHTML serves embedded index.html
+func serveHTML(path string) func(w http.ResponseWriter, r *http.Request) {
 	// Serve static/index.html
-	f, err := staticFS.Open("static/index.html")
-	if err != nil {
-		handleError(w, "index not found", http.StatusInternalServerError, err)
-		return
+	return func(w http.ResponseWriter, r *http.Request) {
+		f, err := staticFS.Open(path)
+		if err != nil {
+			handleError(w, "index not found", http.StatusInternalServerError, err)
+			return
+		}
+		defer f.Close()
+		// set content type
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		io.Copy(w, f)
 	}
-	defer f.Close()
-	// set content type
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	io.Copy(w, f)
 }
 
 // serveStatic serves embedded static files under /static/
@@ -487,8 +489,9 @@ func main() {
 
 	mux := http.NewServeMux()
 	// UI
-	mux.HandleFunc("/", serveIndex)
+	mux.HandleFunc("/", serveHTML("static/index.html"))
 	mux.HandleFunc("/static/", serveStatic)
+	mux.HandleFunc("/ts", serveHTML("static/timestamps.html"))
 
 	// API
 	mux.HandleFunc("/api/tree", func(w http.ResponseWriter, r *http.Request) {

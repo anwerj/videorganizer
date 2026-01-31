@@ -1,0 +1,67 @@
+/* static/css/timestamps.css */
+
+.timestamp-grid {
+    display: grid;
+    gap: 1rem;
+    padding-bottom: 2rem;
+}
+
+.timestamp-grid.cols-1 {
+    grid-template-columns: 1fr;
+}
+
+.timestamp-grid.cols-2 {
+    grid-template-columns: 1fr 1fr;
+}
+
+.timestamp-grid.cols-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+.timestamp-card {
+    background: #222;
+    border-radius: 8px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid #444;
+}
+
+.timestamp-card img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.timestamp-info {
+    padding: 8px 12px;
+    /* background: rgba(0,0,0,0.8); REMOVED */
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* vivid text shadow for readability on any bg */
+    text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000,
+        0px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.timestamp-time {
+    font-family: monospace;
+    font-size: 0.7rem;
+    font-weight: bold;
+    color: var(--accent, #e1f2ff);
+}
+
+@media print {
+
+    header,
+    header.d-flex {
+        display: none !important;
+    }
+}

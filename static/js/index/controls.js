@@ -9,6 +9,7 @@ export function initControls({ player, tree, modals }) {
     const vol = document.getElementById("vol");
     const btnFull = document.getElementById("btnFull");
     const btnRotate = document.getElementById("btnRotate");
+    const btnTimestamps = document.getElementById("btnTimestamps");
     const newNameInput = document.getElementById("newName");
 
     const btnClose = document.querySelector("#renameModal .btn-close");
@@ -71,6 +72,22 @@ export function initControls({ player, tree, modals }) {
 
     // rotate
     btnRotate?.addEventListener("click", () => { player.rotateVideoClockwise?.(); });
+
+    // timestamps button
+    btnTimestamps?.addEventListener("click", () => {
+        const path = player.getCurrentPath?.();
+        if (path) {
+            window.open(`/ts#${encodeURIComponent(path)}`, "_blank");
+        }
+    });
+
+    // Update timestamp button visibility when video loads
+    mainVideo.addEventListener("loadedmetadata", () => {
+        const ts = player.getTimestamps ? player.getTimestamps() : [];
+        if (btnTimestamps) {
+            btnTimestamps.style.display = (ts && ts.length > 0) ? "inline-block" : "none";
+        }
+    });
 
     // global keyboard shortcuts (small set)
     document.addEventListener("keydown", (ev) => {
