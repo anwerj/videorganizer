@@ -112,9 +112,9 @@ export function initTree(api, elms) {
                 left.textContent = name;
                 left.style.cursor = "pointer";
                 left.onclick = () => {
-                    location.hash = encodeURIComponent(relPath);
-                    // dispatch a custom event to tell caller which file was clicked
-                    window.dispatchEvent(new CustomEvent("file-selected", { detail: relPath }));
+                    const p = fileDiv.dataset.path;
+                    location.hash = encodeURIComponent(p);
+                    window.dispatchEvent(new CustomEvent("file-selected", { detail: p }));
                 };
                 const right = document.createElement("small");
                 right.className = "ms-2";
@@ -143,9 +143,9 @@ export function initTree(api, elms) {
             }
         }
 
-        const target = leftTree.querySelector(`.file-item[data-path="${relPath}"]`);
-        switchFileItemSelected(target)
+        const target = findFileItem(relPath);
         if (target) {
+            switchFileItemSelected(target);
             setTimeout(() => {
                 target.scrollIntoView({ block: "center", behavior: "smooth" });
             }, 120);
@@ -153,6 +153,7 @@ export function initTree(api, elms) {
     }
 
     function switchFileItemSelected(target) {
+        if (!target) return;
         const prevTarget = leftTree.querySelector(`.file-item-selected`);
         if (prevTarget) {
             prevTarget.classList.remove('file-item-selected');
@@ -178,15 +179,33 @@ export function initTree(api, elms) {
         const dir = path.includes("/") ? path.slice(0, path.lastIndexOf("/")) : "";
         return getOrderedFilePaths().filter(p => (p.includes("/") ? p.slice(0, p.lastIndexOf("/")) : "") === dir);
     }
+    function findFileItem(path) {
+        if (!path) return null;
+        return leftTree.querySelector(`.file-item[data-path="${CSS.escape(path)}"]`);
+    }
+
+    function updateFilePath(oldPath, newPath) {
+        const item = findFileItem(oldPath);
+        if (!item) return false;
+        item.dataset.path = newPath;
+        const label = item.firstElementChild;
+        if (label) label.textContent = newPath.split("/").pop();
+        return true;
+    }
+
+    function selectPath(path) {
+        if (!path) return false;
+        location.hash = encodeURIComponent(path);
+        window.dispatchEvent(new CustomEvent("file-selected", { detail: path }));
+        return true;
+    }
+
     function goToNextSibling(currentPath) {
         const siblings = getSiblingPaths(currentPath);
         const idx = siblings.indexOf(currentPath);
         if (idx === -1) return false;
         if (idx < siblings.length - 1) {
-            const next = siblings[idx + 1];
-            location.hash = encodeURIComponent(next);
-            window.dispatchEvent(new CustomEvent("file-selected", { detail: next }));
-            return true;
+            return selectPath(siblings[idx + 1]);
         }
         return false;
     }
@@ -194,12 +213,16 @@ export function initTree(api, elms) {
         const siblings = getSiblingPaths(currentPath);
         const idx = siblings.indexOf(currentPath);
         if (idx > 0) {
-            const prev = siblings[idx - 1];
-            location.hash = encodeURIComponent(prev);
-            window.dispatchEvent(new CustomEvent("file-selected", { detail: prev }));
-            return true;
+            return selectPath(siblings[idx - 1]);
         }
         return false;
+    }
+
+    function nextSiblingPath(currentPath) {
+        const siblings = getSiblingPaths(currentPath);
+        const idx = siblings.indexOf(currentPath);
+        if (idx === -1 || idx >= siblings.length - 1) return null;
+        return siblings[idx + 1];
     }
 
     // wire search controls
@@ -214,6 +237,10 @@ export function initTree(api, elms) {
         expandToPath,
         getOrderedFilePaths,
         getSiblingPaths,
+        findFileItem,
+        updateFilePath,
+        selectPath,
+        nextSiblingPath,
         goToNextSibling: (cur) => goToNextSibling(cur),
         goToPrevSibling: (cur) => goToPrevSibling(cur),
     };

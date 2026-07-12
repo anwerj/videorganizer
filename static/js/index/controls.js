@@ -11,6 +11,7 @@ export function initControls({ player, tree, modals }) {
     const btnRotate = document.getElementById("btnRotate");
     const btnTimestamps = document.getElementById("btnTimestamps");
     const newNameInput = document.getElementById("newName");
+    const titleInput = document.getElementById("editTitle");
 
     const btnClose = document.querySelector("#renameModal .btn-close");
 
@@ -96,10 +97,8 @@ export function initControls({ player, tree, modals }) {
     document.addEventListener("keydown", (ev) => {
         const active = document.activeElement;
         if (active && (active.tagName === "INPUT" || active.tagName === "TEXTAREA")) {
-            if (active === newNameInput && ev.key === "Enter") {
-                // prevent duplicate handling: the rename-flow module wires its own Enter handler
+            if (active === titleInput && ev.key === "Enter") {
                 ev.preventDefault();
-                // do not dispatch anything here
             }
             if (ev.key === "Escape") {
                 // Close modal on Esc even if input is focused

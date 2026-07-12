@@ -52,6 +52,7 @@ func (a *API) Mux() *http.ServeMux {
 	mux.HandleFunc("/api/tree", a.Tree)
 	mux.HandleFunc("/api/stream", a.Stream)
 	mux.HandleFunc("/api/rename", a.Rename)
+	mux.HandleFunc("/api/tags", a.Tags)
 	return mux
 }
 

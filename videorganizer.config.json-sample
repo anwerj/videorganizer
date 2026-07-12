@@ -1,5 +1,21 @@
 {
-    "root": "/Users/you/videos",
+    "Root": "/Users/you/videos",
     "Addr": "127.0.0.1:9898",
-    "Exts": { "mp4": true, "mkv": true, "mov": true, "webm": true }
+    "Exts": { "mp4": true, "mkv": true, "mov": true, "webm": true },
+    "Tags": {
+        "sections": {
+            "00": { "label": "Public" },
+            "01": { "label": "Park" },
+            "02": { "label": "Travel" },
+            "03": { "label": "Shopping" },
+            "04": { "label": "Food" },
+            "05": { "label": "Mall" }
+        },
+        "properties": {
+            "a": { "label": "Aligned", "search": ["aligned"] },
+            "m": { "label": "Must watch" },
+            "h": { "label": "Hindustani", "search": ["hindi", "urdu"] },
+            "e": { "label": "Enunciated", "search": ["english"] }
+        }
+    }
 }

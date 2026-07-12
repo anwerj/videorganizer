@@ -1,17 +1,18 @@
 // /static/js/rename-flow.js
-export function initRenameFlow(api, elms, { goToNextSibling, player }) {
+export function initRenameFlow(api, elms, { tree, player, editTags, modals }) {
     const newNameInput = elms.newName;
+    const titleInput = elms.editTitle;
     const msg = elms.msg;
+    const btnConfirm = document.getElementById("btnConfirmRename");
     function setMsg(s) { if (msg) msg.textContent = s || ""; }
+
     async function renameFlow() {
         const currentPath = player.getCurrentPath?.() || (location.hash ? decodeURIComponent(location.hash.slice(1)) : null);
         if (!currentPath) return setMsg("select a file first");
-        const newName = newNameInput.value.trim();
-        if (!newName) return setMsg("enter new filename");
+        const newName = (editTags?.getComposedName?.() || newNameInput?.value || "").trim();
+        if (!newName) return setMsg("enter a title or tags");
         const payload = { path: currentPath, new_name: newName };
-
-        // move to next first (same as C)
-        goToNextSibling(currentPath);
+        const nextPath = tree?.nextSiblingPath?.(currentPath) ?? null;
 
         try {
             const res = await fetch(api.rename, {
@@ -24,17 +25,24 @@ export function initRenameFlow(api, elms, { goToNextSibling, player }) {
                 setMsg("rename error: " + txt);
                 return;
             }
-            setMsg("renamed:" + payload.path + " to " + payload.new_name );
+            const data = await res.json();
+            const newPath = data.new_path || currentPath.replace(/[^/]+$/, newName);
+            tree?.updateFilePath?.(currentPath, newPath);
+            modals?.closeRename?.();
+            if (nextPath) {
+                tree?.selectPath?.(nextPath);
+            } else {
+                tree?.selectPath?.(newPath);
+            }
         } catch (e) {
             setMsg("rename failed");
             console.error(e);
-            setMsg("rename failed");
         }
     }
 
-    // wire events
     window.addEventListener("rename-enter", renameFlow);
-    if (newNameInput) newNameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); renameFlow(); } });
+    btnConfirm?.addEventListener("click", renameFlow);
+    titleInput?.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); renameFlow(); } });
 
     return { renameFlow };
 }

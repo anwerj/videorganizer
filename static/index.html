@@ -64,25 +64,62 @@
         </main>
     </div>
 
-    <!-- Rename Modal -->
+    <!-- Edit / Rename Modal -->
     <div class="modal fade" id="renameModal" tabindex="-1" aria-labelledby="renameModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark text-white">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="renameModalLabel">Rename / Move</h5>
+        <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+            <div class="modal-content edit-modal">
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <h5 class="modal-title" id="renameModalLabel">Edit file</h5>
+                        <div class="small-muted mt-1">Sections, properties, title — then confirm rename</div>
+                    </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
                         aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <div class="mb-2">
-                        <label class="form-label small">Current path</label>
-                        <div id="curPath" class="mono p-2 bg-secondary rounded"></div>
+                <div class="modal-body pt-3">
+                    <div class="edit-path mb-3">
+                        <label class="form-label edit-label">Current path</label>
+                        <div id="curPath" class="edit-path-value mono"></div>
                     </div>
-                    <div class="mb-2">
-                        <label class="form-label small">New filename</label>
-                        <input id="newName" type="text" class="form-control" />
+
+                    <div class="edit-body-grid">
+                        <aside class="edit-sections-col">
+                            <section class="edit-block sections-block h-100">
+                                <div class="mb-2">
+                                    <label class="edit-label mb-0">Sections</label>
+                                    <div class="edit-hint mt-1">Click to add in order · top = filename order</div>
+                                </div>
+                                <div id="sectionList" class="section-list" aria-label="Sections"></div>
+                            </section>
+                        </aside>
+
+                        <div class="edit-main-col">
+                            <section class="edit-block mb-3">
+                                <div class="d-flex align-items-baseline justify-content-between mb-2">
+                                    <label class="edit-label mb-0">Properties</label>
+                                    <span class="edit-hint">Toggle any; saved alphabetically</span>
+                                </div>
+                                <div id="propertyPalette" class="tag-palette property-palette" aria-label="Properties"></div>
+                            </section>
+
+                            <section class="edit-block mb-3">
+                                <label class="form-label edit-label" for="editTitle">Title</label>
+                                <input id="editTitle" type="text" class="form-control edit-input" placeholder="Human-readable name" />
+                            </section>
+
+                            <section class="edit-block mb-2">
+                                <label class="form-label edit-label">Filename preview</label>
+                                <div id="filenamePreview" class="filename-preview mono">—</div>
+                                <input id="newName" type="hidden" />
+                            </section>
+                        </div>
                     </div>
-                    <div id="msg" class="mono mt-2"></div>
+
+                    <div id="msg" class="edit-msg mono mt-2"></div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" id="btnConfirmRename" class="btn btn-primary btn-sm px-4">Rename</button>
                 </div>
             </div>
         </div>

@@ -18,13 +18,36 @@ var defaultJSON = `{
         "mkv":  true,
         "mov":  true,
         "webm": true
+    },
+    "Tags": {
+        "sections": {
+            "00": { "label": "Public" },
+            "01": { "label": "Park" },
+            "02": { "label": "Travel" }
+        },
+        "properties": {
+            "a": { "label": "AA quality", "search": ["quality", "aa"] },
+            "m": { "label": "Must watch" },
+            "h": { "label": "Hindustani", "search": ["hindi", "urdu"] }
+        }
     }
 }`
+
+type TagDef struct {
+	Label  string   `json:"label"`
+	Search []string `json:"search,omitempty"`
+}
+
+type Tags struct {
+	Sections   map[string]TagDef `json:"sections"`
+	Properties map[string]TagDef `json:"properties"`
+}
 
 type Config struct {
 	Root string          `json:"Root"`
 	Addr string          `json:"Addr"`
 	Exts map[string]bool `json:"Exts"`
+	Tags Tags            `json:"Tags"`
 }
 
 func (c Config) IsExtDisabled(name string) bool {

@@ -1,6 +1,6 @@
 ---
 title: Filename tags (digits + alpha)
-status: backlog
+status: upcoming
 ---
 
 Config-defined tags encoded in video filenames. Complements the existing `-ts_` timestamp suffix. No database — portable, zero lock-in.
@@ -82,6 +82,35 @@ Extend `videorganizer.config.json`:
 
 Config is read at server start (`config.Load()` in [`config/config.go`](config/config.go)). Expose tag definitions to the frontend (embed in page, or `GET /api/config`).
 
+## UI plan (edit modal)
+
+**Terminology:** config `digits` → **Sections** (ordered); config `alpha` → **Properties** (unordered, composed alphabetically).
+
+### Layout (`modal-lg`)
+
+1. Current path (muted)
+2. **Sections** — order strip + palette
+3. **Properties** — toggle chips (sorted A–Z in palette)
+4. Title input
+5. Live filename preview
+6. Cancel / Rename
+
+### Sections (ordered)
+
+- **Order strip** at top: selected sections as pills with `↑` `↓` `×` — shows the sequence that becomes `00-01-02-` in the filename and future folder path.
+- **Palette** below: all section codes from config; click to append to the end. Already-selected codes are dimmed (remove via strip only).
+- Rationale: order is explicit in the strip; adding is one click; reorder without drag-and-drop libraries.
+
+### Properties (unordered)
+
+- Grid of toggle chips, alphabetically by code.
+- Active = highlighted. On save, codes are sorted (`a-h-m` not `m-a-h`).
+- Rationale: order does not matter; alphabetical compose is predictable.
+
+### API
+
+`GET /api/tags` → `{ "sections": [...], "properties": [...] }` (sorted server-side).
+
 ## Search
 
 Current search (`searching` in `main.go`) matches substrings in the full path/filename.
@@ -118,20 +147,20 @@ When digit tags are applied or reordered, optionally move file under `{root}/{d0
 
 ### Phase 1 — Parse & compose (no UI)
 
-- [ ] Config struct + defaults in `main.go`
+- [x] Config struct + defaults in `config/config.go`
 - [ ] Shared parse/compose in Go (tests in `main_test.go` or `tags_test.go`)
 - [ ] Mirror logic in `static/js/shared/` for client preview (or `scripts/test_tags_codec.js` for parity)
 - [ ] Document grammar in README
 
 ### Phase 2 — Config to frontend + search
 
-- [ ] Expose `Tags` to static UI
+- [x] Expose `Tags` to static UI (`GET /api/tags`)
 - [ ] Search alias expansion in `searching()`
 - [ ] Tests for label/alias matching
 
 ### Phase 3 — Rename UI
 
-- [ ] Tag picker in rename modal
+- [ ] Tag picker in rename modal (sections strip + properties chips — shell in place)
 - [ ] Digit reorder
 - [ ] Compose basename preserving existing `-ts_` suffix when only tags/title change
 - [ ] Timestamp hotkeys (`t`, `1`) update suffix without stripping tags/title

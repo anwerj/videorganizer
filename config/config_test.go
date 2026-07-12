@@ -12,6 +12,12 @@ func TestDefaultConfig(t *testing.T) {
 	if err := json.Unmarshal([]byte(defaultJSON), &cnf); err != nil {
 		t.Fatal(err)
 	}
+	if got := cnf.Tags.Sections["01"].Label; got != "Park" {
+		t.Fatalf("Tags.Sections[01].Label = %q, want Park", got)
+	}
+	if got := cnf.Tags.Properties["h"].Search; len(got) != 2 || got[0] != "hindi" {
+		t.Fatalf("Tags.Properties[h].Search = %v, want [hindi urdu]", got)
+	}
 	tests := [][]string{
 		{"/videos/movie.mp4", "true"},
 		{"/videos/movie.Mp4", "true"},

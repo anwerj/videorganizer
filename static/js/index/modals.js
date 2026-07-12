@@ -1,19 +1,39 @@
 // /static/js/modals.js
-export function initModals(elms) {
+export function initModals(elms, { editTags, player } = {}) {
     const renameModalEl = document.getElementById("renameModal");
     const fileListModalEl = document.getElementById("fileListModal");
     const renameModal = (typeof bootstrap !== "undefined" && renameModalEl) ? bootstrap.Modal.getOrCreateInstance(renameModalEl) : null;
     const fileListModal = (typeof bootstrap !== "undefined" && fileListModalEl) ? bootstrap.Modal.getOrCreateInstance(fileListModalEl) : null;
+    const titleInput = elms.editTitle;
+    const msgEl = elms.msg;
 
-    function openRename(autofocus = true) {
+    function isRenameOpen() {
+        return renameModalEl?.classList.contains("show");
+    }
+
+    async function refreshEditForm() {
+        const path = player?.getCurrentPath?.() || elms.curPath?.textContent || "";
+        if (elms.curPath) elms.curPath.textContent = path;
+        await editTags?.reloadFromPlayer?.();
+    }
+
+    async function openRename(autofocus = true) {
         if (!renameModal) return;
-        document.getElementById("curPath").textContent = elms.curPath?.textContent || "";
+        await refreshEditForm();
         renameModal.show();
         renameModalEl.addEventListener("shown.bs.modal", function once() {
-            if (autofocus && elms.newName) { elms.newName.focus(); newName.setSelectionRange(0, 2); }
+            if (autofocus && titleInput) {
+                titleInput.focus();
+                titleInput.select();
+            }
         }, { once: true });
     }
     function closeRename() { if (renameModal) renameModal.hide(); }
+
+    renameModalEl?.addEventListener("hidden.bs.modal", () => {
+        if (msgEl) msgEl.textContent = "";
+        editTags?.reloadFromPlayer?.();
+    });
 
     function openFileList() {
         if (!fileListModal) return;
@@ -45,5 +65,5 @@ export function initModals(elms) {
     window.addEventListener("open-rename-modal", () => openRename(true));
     window.addEventListener("open-filelist-modal", () => openFileList());
 
-    return { openRename, closeRename, openFileList, closeFileList };
+    return { openRename, closeRename, openFileList, closeFileList, refreshEditForm, isRenameOpen };
 }
