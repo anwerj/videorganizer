@@ -1,0 +1,25 @@
+---
+description: Videorganizer project direction and constraints
+alwaysApply: true
+---
+
+# Videorganizer
+
+Local video organizer: Go server + embedded static UI. Markers stored in filenames.
+
+## Direction
+
+Check `.cursor/tasks/` for the backlog. Each task is a markdown file with `title` and `status` frontmatter (`upcoming`, `backlog`, `done`).
+
+Always create a new task when starting a new feature.
+
+## Constraints
+
+- `static/` is embedded in the binary — no tests, build artifacts, or dev-only files there
+- Dev/test scripts live under `scripts/`
+- Prefer minimal diffs; match existing code style
+
+## Timestamps (current)
+
+- Suffix format: `-ts_{default}[_a_{audio}]` in centiseconds (delta within each block). Key `t` = default; key `a` = audio.
+- Split markers and legacy `__ts_` migration are out of scope unless a task says otherwise

@@ -81,13 +81,16 @@ export function initControls({ player, tree, modals }) {
         }
     });
 
-    // Update timestamp button visibility when video loads
-    mainVideo.addEventListener("loadedmetadata", () => {
-        const ts = player.getTimestamps ? player.getTimestamps() : [];
+    function updateTimestampsButton() {
+        const markers = player.getMarkers ? player.getMarkers() : [];
         if (btnTimestamps) {
-            btnTimestamps.style.display = (ts && ts.length > 0) ? "inline-block" : "none";
+            btnTimestamps.style.display = (markers && markers.length > 0) ? "inline-block" : "none";
         }
-    });
+    }
+
+    // Update timestamp button visibility when video loads or markers change
+    mainVideo.addEventListener("loadedmetadata", updateTimestampsButton);
+    window.addEventListener("markers-changed", updateTimestampsButton);
 
     // global keyboard shortcuts (small set)
     document.addEventListener("keydown", (ev) => {
@@ -123,6 +126,7 @@ export function initControls({ player, tree, modals }) {
         if (k === "z") { ev.preventDefault(); backward(3); return }
         if (k === "x") { ev.preventDefault(); forward(3); return }
         if (k === "t") { ev.preventDefault(); player.addCurrentTimestamp?.(); return }
+        if (k === "a") { ev.preventDefault(); player.addCurrentAudioMarker?.(); return }
     });
 
     return { togglePlay };

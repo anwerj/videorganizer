@@ -1,0 +1,5 @@
+{
+    "root": "/Users/you/videos",
+    "Addr": "127.0.0.1:9898",
+    "Exts": { "mp4": true, "mkv": true, "mov": true, "webm": true }
+}

@@ -1,4 +1,4 @@
-import { splitName, extractTsFromBase, normalizeTs } from "../shared/utils.js";
+import { splitName, extractTsFromBase, MARKER_IMAGE } from "../shared/utils.js";
 
 const el = id => document.getElementById(id);
 const grid = el("timestampGrid");
@@ -8,13 +8,11 @@ const ctx = canvas.getContext("2d");
 const titleEl = el("videoTitle");
 const loadingStatus = el("loadingStatus");
 
-// Expose setLayout globally for buttons
 window.setLayout = function (n) {
     grid.className = `timestamp-grid cols-${n}`;
     localStorage.setItem("ts-layout-cols", n);
 }
 
-// Load prev layout preference
 const savedLayout = localStorage.getItem("ts-layout-cols");
 if (savedLayout) window.setLayout(savedLayout);
 
@@ -25,24 +23,24 @@ async function init() {
         return;
     }
 
-    // Set title
     const { base } = splitName(path.split("/").pop());
-    const { baseNoTs, ts } = extractTsFromBase(base);
+    const { baseNoTs, markers } = extractTsFromBase(base);
     titleEl.textContent = baseNoTs;
 
-    const timestamps = normalizeTs(ts);
-    if (!timestamps.length) {
-        loadingStatus.textContent = "No timestamps found in filename.";
+    const defaultMarks = markers.filter(m => m.type === MARKER_IMAGE);
+
+    if (!defaultMarks.length) {
+        loadingStatus.textContent = markers.length
+            ? "No screenshot timestamps in filename."
+            : "No timestamps found in filename.";
         return;
     }
 
-    loadingStatus.textContent = `Found ${timestamps.length} timestamps...`;
+    loadingStatus.textContent = `Found ${defaultMarks.length} screenshot${defaultMarks.length === 1 ? "" : "s"}...`;
 
-    // Setup video
     video.src = "/api/stream?path=" + encodeURIComponent(path);
     await video.load();
 
-    // wait for metadata to know dimensions
     if (video.readyState < 1) {
         await new Promise(r => video.addEventListener("loadedmetadata", r, { once: true }));
     }
@@ -50,16 +48,14 @@ async function init() {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
 
-    // Process each timestamp
-    for (let i = 0; i < timestamps.length; i++) {
-        const ms = timestamps[i];
-        loadingStatus.textContent = `Extracting ${i + 1}/${timestamps.length}...`;
-
+    for (let i = 0; i < defaultMarks.length; i++) {
+        const m = defaultMarks[i];
+        loadingStatus.textContent = `Extracting ${i + 1}/${defaultMarks.length}...`;
         try {
-            const imgData = await extractFrame(ms / 1000);
-            addCard(ms, imgData);
+            const imgData = await extractFrame(m.ms / 1000);
+            addTimestampCard(m.ms, imgData);
         } catch (e) {
-            console.error("Frame extraction failed", ms, e);
+            console.error("Frame extraction failed", m.ms, e);
         }
     }
 
@@ -71,8 +67,6 @@ function extractFrame(seconds) {
         const onSeek = () => {
             try {
                 ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                // using toDataURL for simplicity, though toBlob + URL.createObjectURL is more efficient for many images
-                // sticking to DataURL to avoid managing object URL revocations for now
                 resolve(canvas.toDataURL("image/jpeg", 0.85));
             } catch (e) {
                 reject(e);
@@ -96,7 +90,7 @@ function formatTime(ms) {
     return `${m}:${String(sec).padStart(2, '0')}:${String(milli).padStart(3, '0')}`;
 }
 
-function addCard(ms, imgData) {
+function addTimestampCard(ms, imgData) {
     const card = document.createElement("div");
     card.className = "timestamp-card";
     card.innerHTML = `
@@ -108,5 +102,4 @@ function addCard(ms, imgData) {
     grid.appendChild(card);
 }
 
-// Start
 init();

@@ -15,6 +15,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/anwerj/videorganizer/config"
 )
 
 // ----------------------
@@ -25,34 +27,9 @@ import (
 var staticFS embed.FS
 
 // ----------------------
-// Configuration
+// Runtime state (set in main from config.Load)
 // ----------------------
-var (
-	config     Config
-	ListenAddr = "127.0.0.1:9898"
-	RootDir    = "." // folder next to binary containing videos
-)
-
-var defaultConfig = `{
-    "Addr" : "127.0.0.1:9898",
-    "Exts" : {
-        "mp4":  true,
-        "mkv":  true,
-        "mov":  true,
-        "webm": true
-    }
-}`
-
-type Config struct {
-	Addr string          `json:"Addr"`
-	Exts map[string]bool `json:"Exts"`
-}
-
-func (c Config) IsExtDisabled(name string) bool {
-	ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(name)), ".")
-	// fmt.Printf("name:%s(ext:%s) in %v\n", name, ext, c.Exts)
-	return !c.Exts[ext]
-}
+var cfg config.Config
 
 // ----------------------
 // Helpers
@@ -139,11 +116,11 @@ func buildNode(dir string, search string, includeOrganized bool) (map[string]any
 				continue
 			}
 			// If ext is disabled, skip
-			if config.IsExtDisabled(name) {
+			if cfg.IsExtDisabled(name) {
 				continue
 			}
 			// Filter organized files if not requested
-			if !includeOrganized && strings.Contains(name, "_ts_") {
+			if !includeOrganized && strings.Contains(name, "-ts_") {
 				continue
 			}
 			// file -> store size (as number)
@@ -226,8 +203,8 @@ func serveStatic(w http.ResponseWriter, r *http.Request) {
 func apiTree(w http.ResponseWriter, req *http.Request) {
 	search := req.URL.Query().Get("search")
 	organized := req.URL.Query().Get("organized") == "true"
-	fmt.Printf("Building Tree with root:%s search:%s organized:%v\n", RootDir, search, organized)
-	tree, err := buildTree(RootDir, search, organized)
+	fmt.Printf("Building Tree with root:%s search:%s organized:%v\n", cfg.Root, search, organized)
+	tree, err := buildTree(cfg.Root, search, organized)
 	if err != nil {
 		handleError(w, "failed to build tree", http.StatusInternalServerError, err)
 		return
@@ -283,7 +260,7 @@ func apiStreamReal(w http.ResponseWriter, r *http.Request) {
 		handleError(w, "path required", http.StatusBadRequest, nil)
 		return
 	}
-	filePath, err := safeJoin(RootDir, path)
+	filePath, err := safeJoin(cfg.Root, path)
 	if err != nil {
 		handleError(w, "invalid path", http.StatusBadRequest, err)
 		return
@@ -365,7 +342,7 @@ func apiStream(w http.ResponseWriter, r *http.Request) {
 		handleError(w, "path required", http.StatusBadRequest, nil)
 		return
 	}
-	filePath, err := safeJoin(RootDir, path)
+	filePath, err := safeJoin(cfg.Root, path)
 	if err != nil {
 		handleError(w, "invalid path", http.StatusBadRequest, err)
 		return
@@ -416,8 +393,8 @@ func apiRename(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Resolve the existing path safely inside RootDir
-	oldPath, err := safeJoin(RootDir, req.Path)
+	// Resolve the existing path safely inside cfg.Root
+	oldPath, err := safeJoin(cfg.Root, req.Path)
 	if err != nil {
 		handleError(w, "invalid path", http.StatusBadRequest, err)
 		return
@@ -431,13 +408,13 @@ func apiRename(w http.ResponseWriter, r *http.Request) {
 	dir := filepath.Dir(oldPath)
 	newPath := filepath.Join(dir, req.NewName)
 
-	// Ensure newPath stays inside RootDir
+	// Ensure newPath stays inside cfg.Root
 	absNew, err := filepath.Abs(newPath)
 	if err != nil {
 		handleError(w, "invalid new name", http.StatusBadRequest, err)
 		return
 	}
-	absRoot, err := filepath.Abs(RootDir)
+	absRoot, err := filepath.Abs(cfg.Root)
 	if err != nil {
 		handleError(w, "server error", http.StatusInternalServerError, err)
 		return
@@ -465,26 +442,10 @@ func apiRename(w http.ResponseWriter, r *http.Request) {
 // ----------------------
 
 func main() {
-	// allow optional root dir as first positional argument; default to current directory
-	if len(os.Args) > 1 {
-		RootDir = os.Args[1]
-	} else {
-		RootDir = "."
-	}
-
-	// resolve to absolute path for consistency
-	absRoot, err := filepath.Abs(RootDir)
+	var err error
+	cfg, err = config.Load()
 	if err != nil {
-		log.Fatalf("invalid root directory %q: %v", RootDir, err)
-	}
-	RootDir = absRoot
-
-	// Check if RootDir has video
-	setConfig(RootDir)
-
-	// ensure root exists
-	if _, err := os.Stat(RootDir); os.IsNotExist(err) {
-		log.Fatalf("root directory %q not found. create it and add videos", RootDir)
+		log.Fatal(err)
 	}
 
 	mux := http.NewServeMux()
@@ -517,13 +478,13 @@ func main() {
 	})
 
 	srv := &http.Server{
-		Addr:         config.Addr,
+		Addr:         cfg.Addr,
 		Handler:      logRequest(mux),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 0, // streaming may take long
 		IdleTimeout:  120 * time.Second,
 	}
-	log.Printf("starting server on http://%s  (root=%s)\n", config.Addr, RootDir)
+	log.Printf("starting server on http://%s  (root=%s)\n", cfg.Addr, cfg.Root)
 	log.Fatal(srv.ListenAndServe())
 }
 
@@ -546,18 +507,3 @@ func handleError(w http.ResponseWriter, message string, code int, err error) {
 	}
 }
 
-func setConfig(root string) {
-	configPath := filepath.Join(root, "videorganizer.config.json")
-	content, err := os.ReadFile(configPath)
-	if err != nil {
-		handleError(nil, "could not find config", 400, err)
-		content = []byte(defaultConfig)
-	}
-	fmt.Println("Starting with config:\n" + string(content))
-
-	err = json.Unmarshal(content, &config)
-	if err != nil {
-		handleError(nil, "could not load config", 400, err)
-		os.Exit(1)
-	}
-}

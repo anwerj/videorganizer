@@ -1,4 +1,12 @@
-import { splitName, extractTsFromBase, normalizeTs } from "../shared/utils.js";
+import {
+    splitName,
+    extractTsFromBase,
+    encodeMarkers,
+    sortMarkers,
+    addMarker,
+    MARKER_IMAGE,
+    MARKER_AUDIO,
+} from "../shared/utils.js";
 
 export function initPlayer(api, elms, helpers = {}) {
     const mainVideo = elms.mainVideo;
@@ -22,61 +30,61 @@ export function initPlayer(api, elms, helpers = {}) {
     let rotation = 0;
     const ctx = previewCanvas ? previewCanvas.getContext("2d") : null;
 
-    // --- timestamps state (ms) ---
-    let timestamps = []; // always sorted asc, de-duped (>=500ms apart)
-
-    // ===== helpers: filename + ts handling =====
+    let markers = []; // { ms, type }[]
 
     function rebuildNameWithTs(currentInputValue) {
         if (!currentInputValue) return currentInputValue;
         const { base, ext } = splitName(currentInputValue);
         const { baseNoTs } = extractTsFromBase(base);
-        const ts = normalizeTs(timestamps);
-        if (!ts.length) return baseNoTs + ext;
-        return `${baseNoTs}__ts_${ts.join('_')}${ext}`;
+        const suffix = encodeMarkers(markers);
+        if (!suffix) return baseNoTs + ext;
+        return `${baseNoTs}${suffix}${ext}`;
     }
+
     function setInputNamePreservingUserBase(newFullNameMaybe) {
         if (!newNameInput) return;
         newNameInput.value = rebuildNameWithTs(newFullNameMaybe || newNameInput.value);
     }
+
     function initTsFromFilename(filename) {
         const { base } = splitName(filename);
-        const { ts } = extractTsFromBase(base);
-        timestamps = normalizeTs(ts);
-    }
-    function addTimestampMs(ms) {
-        timestamps.push(ms);
-        timestamps = normalizeTs(timestamps);
-        // reflect in input immediately
-        setInputNamePreservingUserBase();
-        // re-render dots
-        renderTimestampDots();
+        const { markers: parsed } = extractTsFromBase(base);
+        markers = sortMarkers(parsed);
     }
 
-    // ===== setCurrent / load playback =====
+    function notifyMarkersChanged() {
+        window.dispatchEvent(new CustomEvent("markers-changed"));
+    }
+
+    function addTimestampMs(ms, type = MARKER_IMAGE) {
+        markers = addMarker(markers, ms, type);
+        setInputNamePreservingUserBase();
+        renderTimestampDots();
+        notifyMarkersChanged();
+    }
+
     function setCurrent(path, autoplay = false) {
         currentPath = path;
 
         if (curPathEl) curPathEl.textContent = path || "";
         if (fileLabel) fileLabel.textContent = path || "";
 
-        // set rename input to filename and initialize timestamps from it (if it has __ts_)
         const fname = path ? path.split("/").pop() : "";
         if (newNameInput) {
             if (fname) newNameInput.value = fname;
-            // parse timestamps from existing name (if any), then standardize input
             initTsFromFilename(newNameInput.value || "");
             setInputNamePreservingUserBase(newNameInput.value || "");
+            notifyMarkersChanged();
         }
 
         if (!path) {
             mainVideo.removeAttribute("src");
             previewVideo.removeAttribute("src");
+            markers = [];
             clearTimestampDots();
             return;
         }
 
-        // Resize preview canvas when preview video loads
         previewVideo.onloadedmetadata = () => {
             if (previewVideo.videoWidth && previewVideo.videoHeight) {
                 const aspect = previewVideo.videoWidth / previewVideo.videoHeight;
@@ -101,7 +109,6 @@ export function initPlayer(api, elms, helpers = {}) {
             else mainVideo.addEventListener("loadedmetadata", () => playAttempt(), { once: true });
         }
 
-        // draw dots once duration is known
         if (!isFinite(mainVideo.duration) || isNaN(mainVideo.duration)) {
             mainVideo.addEventListener("loadedmetadata", () => renderTimestampDots(), { once: true });
         } else {
@@ -109,7 +116,6 @@ export function initPlayer(api, elms, helpers = {}) {
         }
     }
 
-    // ===== rotation (unchanged logic, tightened) =====
     function rotateVideoClockwise() {
         rotation = (rotation + 90) % 360;
         mainVideo.style.transformOrigin = "center center";
@@ -139,7 +145,6 @@ export function initPlayer(api, elms, helpers = {}) {
         mainVideo.style.objectFit = "contain";
     }
 
-    // ===== preview hover / seek =====
     function onHoverSeek(e) {
         if (!previewVideo.duration || isNaN(previewVideo.duration)) return;
         if (!seekOverlay || !previewCanvasWrap || !previewCanvas) return;
@@ -148,19 +153,11 @@ export function initPlayer(api, elms, helpers = {}) {
         const xInOverlay = Math.min(Math.max(0, e.clientX - overlayRect.left), overlayRect.width);
         const t = (xInOverlay / overlayRect.width) * previewVideo.duration;
 
-        // Position preview over the sidebar (left side of screen)
-        // We use fixed positioning to break out of the player container
         previewCanvasWrap.style.position = "fixed";
         previewCanvasWrap.style.zIndex = "9999";
-
-        // Target the sidebar area. Assuming sidebar is on the left.
-        // We'll place it at left: 10px, bottom: 80px (above controls approx)
-        // Or we can try to center it vertically in the sidebar if we want.
-        // Let's stick to a fixed position at the bottom-left corner of the window,
-        // which usually covers the bottom of the sidebar.
         previewCanvasWrap.style.left = "20px";
         previewCanvasWrap.style.top = "auto";
-        previewCanvasWrap.style.bottom = "100px"; // Above the controls bar usually
+        previewCanvasWrap.style.bottom = "100px";
         previewCanvasWrap.style.display = "block";
         previewCanvasWrap.style.transform = "none";
 
@@ -183,9 +180,8 @@ export function initPlayer(api, elms, helpers = {}) {
         const t = (x / rect.width) * mainVideo.duration;
         mainVideo.currentTime = t;
 
-        // record timestamp if Ctrl/Cmd pressed
         if (e.ctrlKey || e.metaKey) {
-            addTimestampMs(Math.round(t * 1000));
+            addTimestampMs(Math.round(t * 1000), MARKER_IMAGE);
         }
     }
 
@@ -193,11 +189,9 @@ export function initPlayer(api, elms, helpers = {}) {
         seekOverlay.addEventListener("mousemove", onHoverSeek);
         seekOverlay.addEventListener("mouseleave", onLeaveSeek);
         seekOverlay.addEventListener("click", onClickSeek);
-        // re-layout dots on resize
         window.addEventListener("resize", renderTimestampDots);
     }
 
-    // ===== timestamp dots on seekOverlay =====
     function ensureDotsHost() {
         if (!seekOverlay) return null;
         let host = seekOverlay.querySelector(".ts-dots-host");
@@ -214,41 +208,49 @@ export function initPlayer(api, elms, helpers = {}) {
         }
         return host;
     }
+
     function clearTimestampDots() {
         const host = ensureDotsHost();
         if (!host) return;
         host.innerHTML = "";
     }
+
+    function createDot(ms, type, dur) {
+        const s = ms / 1000;
+        if (s < 0 || s > dur) return null;
+        const pct = s / dur;
+        const dot = document.createElement("div");
+        const isAudio = type === MARKER_AUDIO;
+        dot.className = `ts-dot ${isAudio ? "ts-dot-audio" : "ts-dot-default"}`;
+        dot.title = `${s.toFixed(2)}s — ${isAudio ? "Audio" : "Timestamp"}`;
+        dot.style.position = "absolute";
+        dot.style.bottom = "2px";
+        dot.style.width = "6px";
+        dot.style.height = "6px";
+        dot.style.borderRadius = "50%";
+        dot.style.left = `calc(${(pct * 100).toFixed(4)}% - 3px)`;
+        return dot;
+    }
+
     function renderTimestampDots() {
         const host = ensureDotsHost();
         if (!host) return;
         host.innerHTML = "";
         const dur = mainVideo && isFinite(mainVideo.duration) ? mainVideo.duration : 0;
-        if (!dur || !timestamps.length) return;
-        const w = seekOverlay.clientWidth || 1;
+        if (!dur || !markers.length) return;
 
-        const uniq = normalizeTs(timestamps);
-        for (const ms of uniq) {
-            const s = ms / 1000;
-            if (s < 0 || s > dur) continue;
-            const pct = s / dur;
-            const dot = document.createElement("div");
-            dot.className = "ts-dot";
-            dot.title = `${(s).toFixed(2)}s`;
-            dot.style.position = "absolute";
-            dot.style.bottom = "2px";
-            dot.style.width = "6px";
-            dot.style.height = "6px";
-            dot.style.borderRadius = "50%";
-            dot.style.background = "var(--accent, #e1f2ff)";
-            dot.style.boxShadow = "0 0 4px rgba(255,255,255,0.6)";
-            // center dot on time position
-            dot.style.left = `calc(${(pct * 100).toFixed(4)}% - 3px)`;
-            host.appendChild(dot);
+        for (const m of markers) {
+            if (m.type !== MARKER_IMAGE) continue;
+            const dot = createDot(m.ms, m.type, dur);
+            if (dot) host.appendChild(dot);
+        }
+        for (const m of markers) {
+            if (m.type !== MARKER_AUDIO) continue;
+            const dot = createDot(m.ms, m.type, dur);
+            if (dot) host.appendChild(dot);
         }
     }
 
-    // ===== time display =====
     const timeDisplayEl = document.getElementById("timeDisplay") || null;
     function formatTime(sec) {
         if (!sec || isNaN(sec) || !isFinite(sec)) return "0:00";
@@ -273,12 +275,17 @@ export function initPlayer(api, elms, helpers = {}) {
         setCurrent,
         rotateVideoClockwise,
         getCurrentPath: () => currentPath,
-        // expose read-only timestamps if you ever need them
-        getTimestamps: () => [...timestamps],
+        getMarkers: () => [...markers],
+        getTimestamps: () => markers.map(m => m.ms),
         addCurrentTimestamp: () => {
             if (mainVideo && !isNaN(mainVideo.currentTime)) {
-                addTimestampMs(Math.round(mainVideo.currentTime * 1000));
+                addTimestampMs(Math.round(mainVideo.currentTime * 1000), MARKER_IMAGE);
             }
-        }
+        },
+        addCurrentAudioMarker: () => {
+            if (mainVideo && !isNaN(mainVideo.currentTime)) {
+                addTimestampMs(Math.round(mainVideo.currentTime * 1000), MARKER_AUDIO);
+            }
+        },
     };
 }

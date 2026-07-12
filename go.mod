@@ -1,3 +1,3 @@
-module github.com/anwerj/videorganize
+module github.com/anwerj/videorganizer
 
 go 1.24.4
