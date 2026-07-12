@@ -30,6 +30,11 @@ export function initPlayer(api, elms, helpers = {}) {
     let rotation = 0;
     const ctx = previewCanvas ? previewCanvas.getContext("2d") : null;
 
+    // Outside panels so position:fixed is viewport-relative (backdrop-filter on .panel traps fixed)
+    if (previewCanvasWrap && previewCanvasWrap.parentElement !== document.body) {
+        document.body.appendChild(previewCanvasWrap);
+    }
+
     let markers = []; // { ms, type }[]
 
     function rebuildNameWithTs(currentInputValue) {
@@ -153,13 +158,10 @@ export function initPlayer(api, elms, helpers = {}) {
         const xInOverlay = Math.min(Math.max(0, e.clientX - overlayRect.left), overlayRect.width);
         const t = (xInOverlay / overlayRect.width) * previewVideo.duration;
 
-        previewCanvasWrap.style.position = "fixed";
-        previewCanvasWrap.style.zIndex = "9999";
         previewCanvasWrap.style.left = "20px";
         previewCanvasWrap.style.top = "auto";
         previewCanvasWrap.style.bottom = "100px";
         previewCanvasWrap.style.display = "block";
-        previewCanvasWrap.style.transform = "none";
 
         const now = performance.now();
         if (now - lastHoverTime < 60) return;

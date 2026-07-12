@@ -11,13 +11,28 @@
 
     <!-- Optional: Icon font -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <script>
+        try {
+            var _m = { slate: "azure", compact: "ember", default: "azure", minimal: "minimal" };
+            var _t = localStorage.getItem("videorganizer.theme") || "azure";
+            if (_m[_t]) _t = _m[_t];
+            if (["azure", "violet", "jade", "ember", "minimal"].indexOf(_t) === -1) _t = "azure";
+            document.documentElement.dataset.theme = _t;
+        } catch (e) {
+            document.documentElement.dataset.theme = "azure";
+        }
+    </script>
+    <link rel="stylesheet" href="/static/css/themes.css">
     <link rel="stylesheet" href="/static/style.css">
 </head>
 
 <body>
     <div id="app" class="app-grid">
         <!-- Left tree (fixed width) -->
-        <aside id="leftTree" class="panel"></aside>
+        <aside id="leftTree" class="panel tree-panel">
+            <div id="treeScroll" class="tree-scroll"></div>
+            <div id="themeBar" class="theme-bar"></div>
+        </aside>
 
         <!-- Main area: video takes all remaining space -->
         <main id="mainArea" class="panel main-panel d-flex flex-column">
@@ -85,10 +100,10 @@
                     <div class="edit-body-grid">
                         <aside class="edit-sections-col">
                             <section class="edit-block sections-block h-100">
-                                <div class="mb-2">
-                                    <label class="edit-label mb-0">Sections</label>
-                                    <div class="edit-hint mt-1">Click to add in order · top = filename order</div>
-                                </div>
+                                <label class="edit-label section-title mb-2" title="Click to add in order; top = filename order">
+                                    Sections
+                                    <span class="edit-hint section-title-hint"> · click to add</span>
+                                </label>
                                 <div id="sectionList" class="section-list" aria-label="Sections"></div>
                             </section>
                         </aside>

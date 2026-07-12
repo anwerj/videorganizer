@@ -6,6 +6,7 @@ import { initModals } from "./modals.js";
 import { initRenameFlow } from "./rename-flow.js";
 
 import { initEditTags } from "./edit-tags.js";
+import { initThemes } from "./themes.js";
 
 const api = {
   tree: "/api/tree",
@@ -19,6 +20,8 @@ const el = id => document.getElementById(id);
 // required DOM nodes
 const elements = {
   leftTree: el("leftTree"),
+  treeScroll: el("treeScroll"),
+  themeBar: el("themeBar"),
   mainVideo: el("mainVideo"),
   seekOverlay: el("seekOverlay"),
   previewCanvasWrap: el("previewCanvasWrap"),
@@ -40,6 +43,7 @@ if (!elements.leftTree) {
 }
 
 // init
+initThemes();
 const tree = initTree(api, elements);
 const player = initPlayer(api, elements, { getSiblingPaths: tree.getSiblingPaths });
 const editTags = initEditTags(api, elements, { player });

@@ -1,6 +1,7 @@
 // /static/js/tree.js
 export function initTree(api, elms) {
     const leftTree = elms.leftTree;
+    const treeRoot = elms.treeScroll || leftTree;
 
     // create search UI at top
     const searchWrapper = document.createElement("div");
@@ -13,7 +14,7 @@ export function initTree(api, elms) {
       <button id="treeClearBtn" class="btn btn-sm btn-outline-secondary" type="button">×</button>
     </div>
   `;
-    leftTree.appendChild(searchWrapper);
+    treeRoot.appendChild(searchWrapper);
     const searchInput = searchWrapper.querySelector("#treeSearchInput");
     const organizedCheck = searchWrapper.querySelector("#treeOrganizedCheck");
     const searchBtn = searchWrapper.querySelector("#treeSearchBtn");
@@ -26,7 +27,7 @@ export function initTree(api, elms) {
 
     async function loadTree(search = "") {
         // clear below search wrapper
-        while (leftTree.childNodes.length > 1) leftTree.removeChild(leftTree.lastChild);
+        while (treeRoot.childNodes.length > 1) treeRoot.removeChild(treeRoot.lastChild);
 
         const organized = organizedCheck.checked;
         let url = api.tree + "?organized=" + organized;
@@ -37,7 +38,7 @@ export function initTree(api, elms) {
             const n = document.createElement("div");
             n.className = "text-danger p-2";
             n.textContent = "Failed to load library";
-            leftTree.appendChild(n);
+            treeRoot.appendChild(n);
             return;
         }
         const treeJson = await res.json();
@@ -68,7 +69,7 @@ export function initTree(api, elms) {
             }
         }
 
-        leftTree.appendChild(container);
+        treeRoot.appendChild(container);
 
         // auto-select first file if no hash
         const hash = location.hash ? decodeURIComponent(location.hash.slice(1)) : null;

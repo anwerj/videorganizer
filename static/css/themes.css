@@ -1,0 +1,312 @@
+/* Theme tokens — tree (accordion) + edit modal + shell */
+
+/* Default theme: Azure (WMP blue glass) */
+:root,
+[data-theme="azure"] {
+    --font-ui: "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: Consolas, "Cascadia Mono", ui-monospace, monospace;
+
+    --theme-bg: #050a14;
+    --theme-panel: #0a1628;
+    --theme-text: #e8f4ff;
+    --theme-accent: #5ec8ff;
+    --theme-muted: #7eb8e8;
+    --theme-medium: #3d8fd9;
+    --theme-dark: #1a3a5c;
+
+    --app-bg-gradient: radial-gradient(ellipse 120% 80% at 20% 0%, #0d2847 0%, #061018 45%, #030608 100%);
+    --panel-surface: linear-gradient(165deg, rgba(30, 90, 150, 0.35) 0%, rgba(10, 30, 55, 0.55) 40%, rgba(5, 15, 28, 0.75) 100%);
+    --panel-border: 1px solid rgba(94, 200, 255, 0.22);
+    --panel-shadow: 0 4px 24px rgba(0, 40, 90, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    --panel-backdrop: blur(14px);
+    --theme-bar-surface: linear-gradient(180deg, rgba(20, 60, 100, 0.5), rgba(8, 25, 45, 0.85));
+    --accent-glow: 0 0 20px rgba(94, 200, 255, 0.35);
+    --btn-primary-bg: linear-gradient(180deg, #7dd3ff 0%, #2b9fd9 45%, #1565a0 100%);
+    --btn-primary-color: #041018;
+    --btn-primary-shadow: 0 2px 8px rgba(0, 120, 200, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+
+    --tree-folder-color: #8ed4ff;
+    --tree-file-color: #6aafd4;
+    --tree-file-selected-color: #fff;
+    --tree-file-selected-bg: linear-gradient(90deg, rgba(94, 200, 255, 0.18), rgba(94, 200, 255, 0.06));
+    --tree-file-selected-border: #5ec8ff;
+    --tree-row-padding: 9px 10px;
+    --tree-font-size: 0.82rem;
+    --tree-accordion-gap: 3px;
+    --tree-accordion-radius: 8px;
+    --tree-accordion-border: rgba(94, 200, 255, 0.12);
+    --tree-accordion-btn-padding: 0.5rem 0.75rem;
+    --tree-accordion-body-padding: 0.3rem 0.55rem 0.4rem 1rem;
+    --tree-accordion-collapsed-bg: rgba(0, 20, 40, 0.25);
+    --tree-accordion-expanded-bg: linear-gradient(90deg, rgba(94, 200, 255, 0.15), rgba(30, 100, 180, 0.08));
+    --tree-accordion-expanded-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 0 12px rgba(94, 200, 255, 0.12);
+    --tree-hover-bg: rgba(94, 200, 255, 0.08);
+
+    --modal-bg: linear-gradient(155deg, rgba(25, 75, 130, 0.92) 0%, rgba(8, 28, 52, 0.95) 50%, rgba(4, 12, 24, 0.98) 100%);
+    --modal-border: 1px solid rgba(94, 200, 255, 0.35);
+    --modal-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 24px 80px rgba(0, 30, 80, 0.65), var(--accent-glow);
+    --modal-backdrop: blur(16px);
+    --modal-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    --modal-radius: 14px;
+    --modal-block-padding: 0.9rem 1.1rem;
+    --modal-block-radius: 10px;
+    --modal-block-bg: rgba(0, 30, 60, 0.35);
+    --modal-block-border: rgba(94, 200, 255, 0.15);
+    --modal-label-size: 0.7rem;
+    --modal-hint-size: 0.74rem;
+    --modal-input-radius: 8px;
+    --modal-section-radius: 8px;
+    --tag-btn-radius: 8px;
+    --tag-btn-padding: 0.45rem 0.7rem;
+    --tag-btn-font-size: 0.78rem;
+    --tag-btn-active-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 14px rgba(94, 200, 255, 0.25);
+    --section-selected-bg: linear-gradient(180deg, rgba(60, 140, 220, 0.55), rgba(25, 70, 130, 0.65));
+}
+
+/* Plain dark — previous baseline */
+[data-theme="minimal"] {
+    --font-ui: Inter, system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+    --theme-bg: #0f1720;
+    --theme-panel: #0b1220;
+    --theme-text: #c2ddff;
+    --theme-accent: #e1f2ff;
+    --theme-muted: #9fbcea;
+    --theme-medium: #4b63a0;
+    --theme-dark: #304067;
+
+    --app-bg-gradient: #0f1720;
+    --panel-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.02));
+    --panel-border: transparent;
+    --panel-shadow: none;
+    --panel-backdrop: none;
+    --theme-bar-surface: rgba(0, 0, 0, 0.15);
+    --accent-glow: none;
+    --btn-primary-bg: var(--theme-accent);
+    --btn-primary-color: #000;
+    --btn-primary-shadow: none;
+
+    --tree-folder-color: #6b9e7a;
+    --tree-file-color: var(--theme-medium);
+    --tree-file-selected-color: var(--theme-text);
+    --tree-file-selected-bg: rgba(255, 255, 255, 0.04);
+    --tree-file-selected-border: var(--theme-accent);
+    --tree-row-padding: 10px 6px;
+    --tree-font-size: 0.8rem;
+    --tree-accordion-gap: 2px;
+    --tree-accordion-radius: 6px;
+    --tree-accordion-border: rgba(255, 255, 255, 0.04);
+    --tree-accordion-btn-padding: 0.45rem 0.65rem;
+    --tree-accordion-body-padding: 0.25rem 0.5rem 0.35rem 0.75rem;
+    --tree-accordion-collapsed-bg: transparent;
+    --tree-accordion-expanded-bg: linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+    --tree-accordion-expanded-shadow: none;
+    --tree-hover-bg: rgba(255, 255, 255, 0.03);
+
+    --modal-bg: linear-gradient(160deg, #111a2e 0%, #0b1220 55%, #0a1018 100%);
+    --modal-border: rgba(255, 255, 255, 0.08);
+    --modal-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+    --modal-backdrop: none;
+    --modal-inner-glow: none;
+    --modal-radius: 0.5rem;
+    --modal-block-padding: 0.85rem 1rem;
+    --modal-block-radius: 10px;
+    --modal-block-bg: rgba(255, 255, 255, 0.02);
+    --modal-block-border: rgba(255, 255, 255, 0.05);
+    --modal-label-size: 0.72rem;
+    --modal-hint-size: 0.75rem;
+    --modal-input-radius: 8px;
+    --modal-section-radius: 8px;
+    --tag-btn-radius: 8px;
+    --tag-btn-padding: 0.45rem 0.65rem;
+    --tag-btn-font-size: 0.78rem;
+    --tag-btn-active-shadow: inset 0 0 0 1px rgba(225, 242, 255, 0.12);
+    --section-selected-bg: linear-gradient(180deg, rgba(75, 99, 160, 0.4), rgba(48, 64, 103, 0.55));
+}
+
+/* WMP — ember orange accent, dark chrome */
+[data-theme="ember"] {
+    --font-ui: "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: Consolas, ui-monospace, monospace;
+
+    --theme-bg: #120a08;
+    --theme-panel: #1a100c;
+    --theme-text: #ffe8dc;
+    --theme-accent: #ff9a5c;
+    --theme-muted: #c9a090;
+    --theme-medium: #b07050;
+    --theme-dark: #4a3028;
+
+    --app-bg-gradient: radial-gradient(ellipse 100% 70% at 80% 0%, #3d1810 0%, #150a08 40%, #0a0605 100%);
+    --panel-surface: linear-gradient(165deg, rgba(80, 40, 30, 0.4) 0%, rgba(30, 18, 14, 0.6) 50%, rgba(15, 8, 6, 0.85) 100%);
+    --panel-border: 1px solid rgba(255, 154, 92, 0.2);
+    --panel-shadow: 0 4px 28px rgba(60, 20, 10, 0.55), inset 0 1px 0 rgba(255, 200, 160, 0.06);
+    --panel-backdrop: blur(12px);
+    --theme-bar-surface: linear-gradient(180deg, rgba(60, 30, 20, 0.6), rgba(20, 10, 8, 0.9));
+    --accent-glow: 0 0 22px rgba(255, 120, 60, 0.3);
+    --btn-primary-bg: linear-gradient(180deg, #ffb080 0%, #e86a30 50%, #a04018 100%);
+    --btn-primary-color: #1a0800;
+    --btn-primary-shadow: 0 2px 10px rgba(200, 80, 30, 0.55), inset 0 1px 0 rgba(255, 220, 180, 0.4);
+
+    --tree-folder-color: #ffaa77;
+    --tree-file-color: #c09078;
+    --tree-file-selected-color: #fff5ee;
+    --tree-file-selected-bg: linear-gradient(90deg, rgba(255, 120, 60, 0.2), rgba(255, 120, 60, 0.05));
+    --tree-file-selected-border: #ff9a5c;
+    --tree-row-padding: 9px 10px;
+    --tree-font-size: 0.82rem;
+    --tree-accordion-gap: 3px;
+    --tree-accordion-radius: 8px;
+    --tree-accordion-border: rgba(255, 140, 80, 0.12);
+    --tree-accordion-btn-padding: 0.5rem 0.75rem;
+    --tree-accordion-body-padding: 0.3rem 0.55rem 0.4rem 1rem;
+    --tree-accordion-collapsed-bg: rgba(40, 20, 15, 0.35);
+    --tree-accordion-expanded-bg: linear-gradient(90deg, rgba(255, 120, 60, 0.14), rgba(80, 40, 25, 0.1));
+    --tree-accordion-expanded-shadow: inset 0 1px 0 rgba(255, 200, 150, 0.08), 0 0 10px rgba(255, 100, 50, 0.1);
+    --tree-hover-bg: rgba(255, 120, 60, 0.07);
+
+    --modal-bg: linear-gradient(155deg, rgba(70, 35, 25, 0.94) 0%, rgba(25, 12, 8, 0.96) 55%, rgba(12, 6, 4, 0.98) 100%);
+    --modal-border: 1px solid rgba(255, 154, 92, 0.32);
+    --modal-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5), 0 28px 72px rgba(40, 15, 5, 0.7), var(--accent-glow);
+    --modal-backdrop: blur(14px);
+    --modal-inner-glow: inset 0 1px 0 rgba(255, 200, 150, 0.1);
+    --modal-radius: 14px;
+    --modal-block-padding: 0.9rem 1.1rem;
+    --modal-block-radius: 10px;
+    --modal-block-bg: rgba(40, 20, 12, 0.45);
+    --modal-block-border: rgba(255, 154, 92, 0.14);
+    --modal-label-size: 0.7rem;
+    --modal-hint-size: 0.74rem;
+    --modal-input-radius: 8px;
+    --modal-section-radius: 8px;
+    --tag-btn-radius: 8px;
+    --tag-btn-padding: 0.45rem 0.7rem;
+    --tag-btn-font-size: 0.78rem;
+    --tag-btn-active-shadow: inset 0 1px 0 rgba(255, 220, 180, 0.15), 0 0 12px rgba(255, 120, 60, 0.2);
+    --section-selected-bg: linear-gradient(180deg, rgba(180, 80, 40, 0.55), rgba(100, 45, 25, 0.7));
+}
+
+/* Violet glass — purple/magenta WMP vibe */
+[data-theme="violet"] {
+    --font-ui: "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: Consolas, "Cascadia Mono", ui-monospace, monospace;
+
+    --theme-bg: #0a0612;
+    --theme-panel: #120a1e;
+    --theme-text: #f0e8ff;
+    --theme-accent: #c49bff;
+    --theme-muted: #a890d0;
+    --theme-medium: #7b5cb8;
+    --theme-dark: #3d2a5c;
+
+    --app-bg-gradient: radial-gradient(ellipse 110% 75% at 15% 0%, #2a1050 0%, #100820 42%, #06040a 100%);
+    --panel-surface: linear-gradient(165deg, rgba(90, 40, 140, 0.38) 0%, rgba(35, 15, 60, 0.55) 45%, rgba(12, 6, 22, 0.8) 100%);
+    --panel-border: 1px solid rgba(196, 155, 255, 0.22);
+    --panel-shadow: 0 4px 26px rgba(50, 10, 90, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    --panel-backdrop: blur(14px);
+    --theme-bar-surface: linear-gradient(180deg, rgba(55, 25, 90, 0.55), rgba(15, 8, 28, 0.9));
+    --accent-glow: 0 0 22px rgba(180, 120, 255, 0.35);
+    --btn-primary-bg: linear-gradient(180deg, #d4b0ff 0%, #8b55d0 48%, #5a28a0 100%);
+    --btn-primary-color: #0e0618;
+    --btn-primary-shadow: 0 2px 9px rgba(120, 50, 200, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+
+    --tree-folder-color: #d4b8ff;
+    --tree-file-color: #9a78c8;
+    --tree-file-selected-color: #fff;
+    --tree-file-selected-bg: linear-gradient(90deg, rgba(180, 120, 255, 0.2), rgba(180, 120, 255, 0.06));
+    --tree-file-selected-border: #c49bff;
+    --tree-row-padding: 9px 10px;
+    --tree-font-size: 0.82rem;
+    --tree-accordion-gap: 3px;
+    --tree-accordion-radius: 8px;
+    --tree-accordion-border: rgba(180, 120, 255, 0.12);
+    --tree-accordion-btn-padding: 0.5rem 0.75rem;
+    --tree-accordion-body-padding: 0.3rem 0.55rem 0.4rem 1rem;
+    --tree-accordion-collapsed-bg: rgba(25, 10, 45, 0.3);
+    --tree-accordion-expanded-bg: linear-gradient(90deg, rgba(180, 120, 255, 0.16), rgba(70, 35, 120, 0.1));
+    --tree-accordion-expanded-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 0 12px rgba(180, 120, 255, 0.14);
+    --tree-hover-bg: rgba(180, 120, 255, 0.08);
+
+    --modal-bg: linear-gradient(155deg, rgba(55, 25, 95, 0.93) 0%, rgba(18, 8, 35, 0.96) 52%, rgba(8, 4, 14, 0.98) 100%);
+    --modal-border: 1px solid rgba(196, 155, 255, 0.34);
+    --modal-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 26px 78px rgba(40, 10, 70, 0.68), var(--accent-glow);
+    --modal-backdrop: blur(16px);
+    --modal-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.11);
+    --modal-radius: 14px;
+    --modal-block-padding: 0.9rem 1.1rem;
+    --modal-block-radius: 10px;
+    --modal-block-bg: rgba(35, 15, 60, 0.4);
+    --modal-block-border: rgba(196, 155, 255, 0.14);
+    --modal-label-size: 0.7rem;
+    --modal-hint-size: 0.74rem;
+    --modal-input-radius: 8px;
+    --modal-section-radius: 8px;
+    --tag-btn-radius: 8px;
+    --tag-btn-padding: 0.45rem 0.7rem;
+    --tag-btn-font-size: 0.78rem;
+    --tag-btn-active-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 0 14px rgba(180, 120, 255, 0.28);
+    --section-selected-bg: linear-gradient(180deg, rgba(120, 70, 190, 0.55), rgba(60, 30, 110, 0.68));
+}
+
+/* Jade glass — teal/cyan-green */
+[data-theme="jade"] {
+    --font-ui: "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-mono: Consolas, "Cascadia Mono", ui-monospace, monospace;
+
+    --theme-bg: #040c0a;
+    --theme-panel: #081612;
+    --theme-text: #e4fff8;
+    --theme-accent: #5ee8c0;
+    --theme-muted: #7ec8b0;
+    --theme-medium: #3aa888;
+    --theme-dark: #1a4a40;
+
+    --app-bg-gradient: radial-gradient(ellipse 115% 78% at 70% 0%, #0a3830 0%, #061810 44%, #030806 100%);
+    --panel-surface: linear-gradient(165deg, rgba(25, 90, 75, 0.36) 0%, rgba(10, 40, 32, 0.55) 42%, rgba(4, 14, 11, 0.78) 100%);
+    --panel-border: 1px solid rgba(94, 232, 192, 0.2);
+    --panel-shadow: 0 4px 24px rgba(0, 50, 40, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    --panel-backdrop: blur(14px);
+    --theme-bar-surface: linear-gradient(180deg, rgba(18, 65, 52, 0.52), rgba(6, 20, 16, 0.88));
+    --accent-glow: 0 0 20px rgba(94, 232, 192, 0.32);
+    --btn-primary-bg: linear-gradient(180deg, #8af5d8 0%, #30b890 48%, #1a7858 100%);
+    --btn-primary-color: #021810;
+    --btn-primary-shadow: 0 2px 8px rgba(30, 160, 120, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.32);
+
+    --tree-folder-color: #8af0d0;
+    --tree-file-color: #5cb8a0;
+    --tree-file-selected-color: #fff;
+    --tree-file-selected-bg: linear-gradient(90deg, rgba(94, 232, 192, 0.18), rgba(94, 232, 192, 0.05));
+    --tree-file-selected-border: #5ee8c0;
+    --tree-row-padding: 9px 10px;
+    --tree-font-size: 0.82rem;
+    --tree-accordion-gap: 3px;
+    --tree-accordion-radius: 8px;
+    --tree-accordion-border: rgba(94, 232, 192, 0.11);
+    --tree-accordion-btn-padding: 0.5rem 0.75rem;
+    --tree-accordion-body-padding: 0.3rem 0.55rem 0.4rem 1rem;
+    --tree-accordion-collapsed-bg: rgba(0, 25, 20, 0.28);
+    --tree-accordion-expanded-bg: linear-gradient(90deg, rgba(94, 232, 192, 0.14), rgba(25, 90, 70, 0.09));
+    --tree-accordion-expanded-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.09), 0 0 12px rgba(94, 232, 192, 0.12);
+    --tree-hover-bg: rgba(94, 232, 192, 0.07);
+
+    --modal-bg: linear-gradient(155deg, rgba(18, 70, 58, 0.92) 0%, rgba(6, 28, 22, 0.95) 50%, rgba(3, 10, 8, 0.98) 100%);
+    --modal-border: 1px solid rgba(94, 232, 192, 0.32);
+    --modal-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 24px 76px rgba(0, 35, 28, 0.65), var(--accent-glow);
+    --modal-backdrop: blur(16px);
+    --modal-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.11);
+    --modal-radius: 14px;
+    --modal-block-padding: 0.9rem 1.1rem;
+    --modal-block-radius: 10px;
+    --modal-block-bg: rgba(0, 35, 28, 0.38);
+    --modal-block-border: rgba(94, 232, 192, 0.13);
+    --modal-label-size: 0.7rem;
+    --modal-hint-size: 0.74rem;
+    --modal-input-radius: 8px;
+    --modal-section-radius: 8px;
+    --tag-btn-radius: 8px;
+    --tag-btn-padding: 0.45rem 0.7rem;
+    --tag-btn-font-size: 0.78rem;
+    --tag-btn-active-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 0 14px rgba(94, 232, 192, 0.24);
+    --section-selected-bg: linear-gradient(180deg, rgba(45, 150, 120, 0.55), rgba(20, 80, 65, 0.68));
+}

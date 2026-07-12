@@ -1,25 +1,26 @@
+/* Legacy aliases — map to active theme tokens */
 :root {
-    --bg: #0f1720;
-    --panel: #0b1220;
-    --text: #c2ddff;
-    --accent: #e1f2ff;
-    --bs-accordion-bg: #333;
-    --medium: #4b63a0;
-    --dark: #304067;
+    --bg: var(--theme-bg);
+    --panel: var(--theme-panel);
+    --text: var(--theme-text);
+    --accent: var(--theme-accent);
+    --medium: var(--theme-medium);
+    --dark: var(--theme-dark);
+    --bs-accordion-bg: transparent;
 }
 
 html,
 body {
     height: 100%;
     margin: 0;
-    background: var(--bg);
-    color: var(--text);
-    font-family: Inter, system-ui, sans-serif;
+    background: var(--app-bg-gradient);
+    background-color: var(--theme-bg);
+    color: var(--theme-text);
+    font-family: var(--font-ui);
 }
 
 .app-grid {
     display: grid;
-    /* left sidebar fixed, main area takes rest */
     grid-template-columns: 320px 1fr;
     gap: 12px;
     padding: 12px;
@@ -27,29 +28,106 @@ body {
     box-sizing: border-box;
 }
 
-/* panels */
 .panel {
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(0, 0, 0, 0.02));
-    border-radius: 8px;
-    padding: 0px;
+    background: var(--panel-surface);
+    border: var(--panel-border);
+    box-shadow: var(--panel-shadow);
+    -webkit-backdrop-filter: var(--panel-backdrop);
+    backdrop-filter: var(--panel-backdrop);
+    border-radius: 10px;
+    padding: 0;
     overflow: auto;
     min-height: 0;
-    /* allow flex children to size correctly */
 }
 
-/* left sidebar styles */
-#leftTree {
-    padding: 0px;
+/* ---------- Sidebar tree panel ---------- */
+
+.tree-panel {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 8px 8px 0;
 }
 
-/* main area: let player take available vertical space */
+.tree-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-bottom: 8px;
+}
+
+.theme-bar {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.35rem;
+    border-top: 1px solid var(--tree-accordion-border);
+    background: var(--theme-bar-surface);
+    transition: padding 0.15s ease;
+}
+
+.theme-bar:hover {
+    padding: 0.55rem 0.35rem 0.65rem;
+}
+
+.theme-bar-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--theme-muted);
+    flex-shrink: 0;
+    cursor: default;
+    transition: color 0.15s;
+}
+
+.theme-bar:hover .theme-bar-label {
+    color: var(--theme-text);
+}
+
+.theme-bar-options {
+    display: none;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.theme-bar:hover .theme-bar-options {
+    display: flex;
+}
+
+.theme-btn {
+    padding: 0.25rem 0.65rem;
+    font-size: 0.68rem;
+    font-weight: 600;
+    font-family: var(--font-ui);
+    border-radius: 999px;
+    border: 1px solid var(--tree-accordion-border);
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--theme-muted);
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.theme-btn:hover {
+    color: var(--theme-text);
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.theme-btn.active {
+    color: var(--btn-primary-color, var(--theme-accent));
+    border-color: rgba(255, 255, 255, 0.25);
+    background: var(--btn-primary-bg);
+    box-shadow: var(--btn-primary-shadow), var(--accent-glow);
+}
+
 .main-panel {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
-/* player wrapper fills remaining vertical space and centers the video */
 .player-wrap {
     flex: 1;
     display: flex;
@@ -62,7 +140,6 @@ body {
     overflow: hidden;
 }
 
-/* video fits inside available area (no cropping) */
 #mainVideo {
     max-width: 100%;
     max-height: 100%;
@@ -74,7 +151,6 @@ body {
     transform-origin: center center;
 }
 
-/* seek overlay and preview canvas (same as before) */
 #seekOverlay {
     position: absolute;
     left: 0;
@@ -88,20 +164,17 @@ body {
 }
 
 #previewCanvasWrap {
-    position: absolute;
-    z-index: 50;
+    position: fixed;
+    z-index: 10000;
     pointer-events: none;
-    transform: translate(-50%, -120%);
     border-radius: 4px;
     overflow: hidden;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
     display: none;
-    border: 1px solid var(--accent);
-    z-index: 98;
+    border: 1px solid var(--theme-accent);
 }
 
 #previewCanvas {
-    /* width/height set by JS or attributes */
     display: block;
 }
 
@@ -110,7 +183,7 @@ body {
 }
 
 .mono {
-    font-family: monospace;
+    font-family: var(--font-mono);
     font-size: 13px;
     color: #cfe7ff;
     word-break: break-all;
@@ -118,26 +191,30 @@ body {
 
 .file-item {
     cursor: pointer;
-    color: var(--medium);
-    padding: 10px 6px;
+    color: var(--tree-file-color);
+    padding: var(--tree-row-padding);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.8rem;
-    border-bottom: 1px solid var(--dark);
+    font-size: var(--tree-font-size);
+    border-bottom: 1px solid var(--theme-dark);
+    transition: background 0.12s;
 }
 
 .file-item-selected {
-    color: var(--text);
+    color: var(--tree-file-selected-color);
+    background: var(--tree-file-selected-bg);
+    border-left: 2px solid var(--tree-file-selected-border);
+    padding-left: calc(6px - 2px);
 }
 
 .file-item:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--tree-hover-bg);
 }
 
 .folder-title {
     font-weight: 600;
-    color: darkgreen;
+    color: var(--tree-folder-color);
     display: flex;
     gap: 8px;
     align-items: center;
@@ -147,45 +224,33 @@ body {
 .btn,
 .form-check-input {
     background: rgba(255, 255, 255, 0.02);
-    color: var(--text);
+    color: var(--theme-text);
     border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
 .btn-primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #000;
+    background: var(--btn-primary-bg);
+    border-color: transparent;
+    color: var(--btn-primary-color);
+    box-shadow: var(--btn-primary-shadow);
+    font-weight: 600;
 }
 
 .small-muted {
-    color: #9fbcea;
+    color: var(--theme-muted);
     font-size: 13px;
 }
 
-.accordion-button {
-    background: transparent;
-    box-shadow: none;
-    border: none;
-    padding-left: 0.25rem;
-}
-
-.accordion-body {
-    padding: 0.5rem 0.5rem 0.75rem 0.5rem;
-}
-
-
-/* controls bar — fixed inside playerWrap, above the video */
 .controls-bar {
     position: absolute;
     left: 12px;
     right: 12px;
     bottom: 8px;
     z-index: 60;
-    padding: 0px;
+    padding: 0;
     border-radius: 8px;
     align-items: center;
     opacity: 0;
-    ;
 }
 
 .controls-bar:hover {
@@ -197,76 +262,87 @@ body {
     float: right;
 }
 
-/* make sure the controls bar itself does not rotate */
-.player-wrap>.controls-bar {
+.player-wrap > .controls-bar {
     transform: none !important;
 }
 
-
-/* ---------- Dark accordion overrides (place after Bootstrap CSS) ---------- */
+/* ---------- Tree accordion ---------- */
 
 .accordion {
     --bs-accordion-border-width: 0;
-    gap: 8px;
+    gap: var(--tree-accordion-gap);
 }
 
-/* item container */
 .accordion .accordion-item {
     background: transparent;
-    border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: var(--tree-accordion-radius);
+    border: none;
+    border-bottom: 1px solid var(--tree-accordion-border);
     overflow: hidden;
 }
 
-/* header button */
 .accordion-button {
-    background: transparent;
-    color: var(--text);
-    padding: .5rem .75rem;
+    background: var(--tree-accordion-collapsed-bg);
+    color: var(--theme-text);
+    padding: var(--tree-accordion-btn-padding);
     font-weight: 600;
+    font-size: var(--tree-font-size);
+    font-family: var(--font-ui);
     box-shadow: none;
     border: none;
     align-items: center;
+    transition: color 0.15s, background 0.15s;
 }
 
-/* collapsed state (when closed) - slightly subdued */
 .accordion-button.collapsed {
-    color: #9fbcea;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(0, 0, 0, 0.01));
+    color: var(--theme-muted);
 }
 
-/* expanded state */
 .accordion-button:not(.collapsed) {
-    color: var(--accent);
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+    color: var(--theme-accent);
+    background: var(--tree-accordion-expanded-bg);
+    box-shadow: var(--tree-accordion-expanded-shadow);
+    text-shadow: 0 0 20px rgba(94, 200, 255, 0.15);
 }
 
-/* remove default focus outline and replace with subtle ring */
+[data-theme="minimal"] .accordion-button:not(.collapsed) {
+    text-shadow: none;
+}
+
+[data-theme="ember"] .accordion-button:not(.collapsed) {
+    text-shadow: 0 0 18px rgba(255, 120, 60, 0.2);
+}
+
+[data-theme="violet"] .accordion-button:not(.collapsed) {
+    text-shadow: 0 0 18px rgba(180, 120, 255, 0.25);
+}
+
+[data-theme="jade"] .accordion-button:not(.collapsed) {
+    text-shadow: 0 0 18px rgba(94, 232, 192, 0.22);
+}
+
 .accordion-button:focus {
-    box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.08);
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.08);
     outline: none;
 }
 
-/* chevron: ensure it follows current color (Bootstrap's icon uses currentColor) */
 .accordion-button::after {
-    /* prefer using currentColor (Bootstrap uses an SVG that respects currentColor) */
     color: inherit;
-    opacity: 0.95;
-    /* slightly shift chevron closer to text */
-    margin-left: .5rem;
+    opacity: 0.85;
+    margin-left: 0.5rem;
+    transition: transform 0.2s;
 }
 
-/* body */
 .accordion-body {
-    color: var(--text);
-    padding: .5rem .75rem .75rem .75rem;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.005), rgba(0, 0, 0, 0.005));
+    color: var(--theme-text);
+    padding: var(--tree-accordion-body-padding);
+    background: transparent;
 }
 
-/* small tweaks for nested accordions/file items */
 .accordion .file-item {
     background: transparent;
-    padding: 6px;
+    padding: var(--tree-row-padding);
+    border-bottom-color: var(--tree-accordion-border);
 }
 
 /* timestamp dots on seekbar */
@@ -279,7 +355,7 @@ body {
 }
 
 .ts-dot-default {
-    background: var(--accent, #e1f2ff);
+    background: var(--theme-accent);
     z-index: 1;
     box-shadow:
         0 0 0 1px rgba(0, 0, 0, 0.9),
@@ -301,30 +377,46 @@ body {
 /* ---------- Edit / rename modal ---------- */
 
 .edit-modal {
-    background: linear-gradient(160deg, #111a2e 0%, #0b1220 55%, #0a1018 100%);
-    color: var(--text);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+    background: var(--modal-bg);
+    color: var(--theme-text);
+    border: var(--modal-border);
+    border-radius: var(--modal-radius);
+    font-family: var(--font-ui);
+    -webkit-backdrop-filter: var(--modal-backdrop);
+    backdrop-filter: var(--modal-backdrop);
+    box-shadow: var(--modal-shadow), var(--modal-inner-glow);
 }
 
 .edit-label {
-    font-size: 0.72rem;
+    font-size: var(--modal-label-size);
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #9fbcea;
+    color: var(--theme-muted);
 }
 
 .edit-hint {
-    font-size: 0.75rem;
+    font-size: var(--modal-hint-size);
     color: rgba(159, 188, 234, 0.65);
 }
 
+.section-title {
+    display: block;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
+}
+
+.section-title-hint {
+    font-weight: 500;
+    letter-spacing: normal;
+    text-transform: none;
+}
+
 .edit-block {
-    padding: 0.85rem 1rem;
-    border-radius: 10px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    padding: var(--modal-block-padding);
+    border-radius: var(--modal-block-radius);
+    background: var(--modal-block-bg);
+    border: 1px solid var(--modal-block-border);
 }
 
 .edit-body-grid {
@@ -369,7 +461,7 @@ body {
     color: #8fa8d4;
     word-break: break-all;
     padding: 0.5rem 0.65rem;
-    border-radius: 8px;
+    border-radius: var(--modal-input-radius);
     background: rgba(0, 0, 0, 0.22);
     border: 1px solid rgba(255, 255, 255, 0.04);
 }
@@ -377,23 +469,25 @@ body {
 .edit-input {
     background: rgba(0, 0, 0, 0.25);
     border-color: rgba(255, 255, 255, 0.08);
-    color: var(--text);
+    color: var(--theme-text);
+    border-radius: var(--modal-input-radius);
 }
 
 .edit-input:focus {
     background: rgba(0, 0, 0, 0.35);
     border-color: rgba(225, 242, 255, 0.35);
-    color: var(--text);
+    color: var(--theme-text);
     box-shadow: 0 0 0 3px rgba(225, 242, 255, 0.08);
 }
 
 .filename-preview {
     font-size: 0.85rem;
+    font-family: var(--font-mono);
     padding: 0.65rem 0.75rem;
-    border-radius: 8px;
+    border-radius: var(--modal-input-radius);
     background: rgba(225, 242, 255, 0.04);
     border: 1px dashed rgba(225, 242, 255, 0.18);
-    color: var(--accent);
+    color: var(--theme-accent);
     word-break: break-all;
     min-height: 2.25rem;
 }
@@ -404,7 +498,6 @@ body {
     min-height: 1.1rem;
 }
 
-/* Section list — single column, selection order at top */
 .section-list {
     display: flex;
     flex-direction: column;
@@ -418,20 +511,21 @@ body {
 .section-list-empty {
     font-style: italic;
     padding: 0.5rem 0.25rem;
+    color: var(--theme-muted);
 }
 
 .section-row {
     display: flex;
     align-items: center;
     gap: 0.25rem;
-    border-radius: 8px;
+    border-radius: var(--modal-section-radius);
     border: 1px solid rgba(255, 255, 255, 0.06);
     background: rgba(255, 255, 255, 0.02);
 }
 
 .section-row.selected {
     border-color: rgba(225, 242, 255, 0.28);
-    background: linear-gradient(180deg, rgba(75, 99, 160, 0.4), rgba(48, 64, 103, 0.55));
+    background: var(--section-selected-bg);
 }
 
 .section-row-main {
@@ -443,8 +537,9 @@ body {
     padding: 0.4rem 0.5rem;
     border: none;
     background: transparent;
-    color: var(--text);
-    font-size: 0.8rem;
+    color: var(--theme-text);
+    font-size: var(--tag-btn-font-size);
+    font-family: var(--font-ui);
     text-align: left;
     cursor: pointer;
 }
@@ -455,29 +550,29 @@ body {
 
 .section-row-order {
     flex: 0 0 1.25rem;
-    font-family: monospace;
+    font-family: var(--font-mono);
     font-weight: 700;
     font-size: 0.75rem;
-    color: var(--accent);
+    color: var(--theme-accent);
     text-align: center;
 }
 
 .section-row-code {
     flex: 0 0 1.75rem;
-    font-family: monospace;
+    font-family: var(--font-mono);
     font-weight: 700;
-    color: var(--accent);
+    color: var(--theme-accent);
 }
 
 .section-row-label {
     flex: 1;
     min-width: 0;
-    color: #9fbcea;
+    color: var(--theme-muted);
     line-height: 1.2;
 }
 
 .section-row.selected .section-row-label {
-    color: var(--text);
+    color: var(--theme-text);
 }
 
 .section-row-actions {
@@ -512,7 +607,6 @@ body {
     cursor: default;
 }
 
-/* Tag palette (properties) */
 .tag-palette {
     display: flex;
     flex-wrap: wrap;
@@ -536,14 +630,15 @@ body {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.1rem;
-    padding: 0.45rem 0.65rem;
-    border-radius: 8px;
+    padding: var(--tag-btn-padding);
+    border-radius: var(--tag-btn-radius);
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.03);
-    color: var(--text);
-    font-size: 0.78rem;
+    color: var(--theme-text);
+    font-size: var(--tag-btn-font-size);
+    font-family: var(--font-ui);
     cursor: pointer;
-    transition: border-color 0.15s, background 0.15s, transform 0.1s;
+    transition: border-color 0.15s, background 0.15s;
     min-width: 4.5rem;
 }
 
@@ -555,7 +650,7 @@ body {
 .tag-btn.active {
     border-color: rgba(225, 242, 255, 0.45);
     background: rgba(75, 99, 160, 0.35);
-    box-shadow: inset 0 0 0 1px rgba(225, 242, 255, 0.12);
+    box-shadow: var(--tag-btn-active-shadow);
 }
 
 .tag-btn.in-order {
@@ -564,17 +659,17 @@ body {
 }
 
 .tag-btn-code {
-    font-family: monospace;
+    font-family: var(--font-mono);
     font-weight: 700;
     font-size: 0.85rem;
-    color: var(--accent);
+    color: var(--theme-accent);
 }
 
 .tag-btn-label {
-    color: #9fbcea;
+    color: var(--theme-muted);
     line-height: 1.2;
 }
 
 .tag-btn.active .tag-btn-label {
-    color: var(--text);
+    color: var(--theme-text);
 }
