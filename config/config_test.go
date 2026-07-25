@@ -46,9 +46,12 @@ func TestIsGoBuildPath(t *testing.T) {
 
 func TestLoadMissingConfig(t *testing.T) {
 	dir := t.TempDir()
-	cfg, err := loadFromDir(dir)
+	cfg, path, err := loadFromDir(dir)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if path != filepath.Join(dir, FileName) {
+		t.Fatalf("path = %q, want %q", path, filepath.Join(dir, FileName))
 	}
 	if cfg.Root != dir {
 		t.Fatalf("Root = %q, want %q", cfg.Root, dir)
@@ -75,9 +78,12 @@ func TestLoadValidConfig(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(configDir, FileName), content, 0644); err != nil {
 		t.Fatal(err)
 	}
-	cfg, err := loadFromDir(configDir)
+	cfg, path, err := loadFromDir(configDir)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if path != filepath.Join(configDir, FileName) {
+		t.Fatalf("path = %q", path)
 	}
 	if cfg.Root != videoDir {
 		t.Fatalf("Root = %q, want %q", cfg.Root, videoDir)
@@ -92,7 +98,7 @@ func TestLoadInvalidJSON(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, FileName), []byte("{bad"), 0644); err != nil {
 		t.Fatal(err)
 	}
-	_, err := loadFromDir(dir)
+	_, _, err := loadFromDir(dir)
 	if err == nil {
 		t.Fatal("expected error for invalid JSON")
 	}
@@ -104,8 +110,114 @@ func TestLoadMissingVideoRoot(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(configDir, FileName), []byte(content), 0644); err != nil {
 		t.Fatal(err)
 	}
-	_, err := loadFromDir(configDir)
+	_, _, err := loadFromDir(configDir)
 	if err == nil {
 		t.Fatal("expected error for missing video root")
+	}
+}
+
+func TestSaveRoundTrip(t *testing.T) {
+	dir := t.TempDir()
+	videoDir := t.TempDir()
+	cfg := Config{
+		Root: videoDir,
+		Addr: "127.0.0.1:9898",
+		Exts: map[string]bool{"mp4": true},
+		Tags: Tags{
+			Sections:   map[string]TagDef{"00": {Label: "Public"}},
+			Properties: map[string]TagDef{"m": {Label: "Must watch"}},
+		},
+	}
+	path := filepath.Join(dir, FileName)
+	if err := Save(path, cfg); err != nil {
+		t.Fatal(err)
+	}
+	loaded, loadedPath, err := loadFromDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loadedPath != path {
+		t.Fatalf("loadedPath = %q, want %q", loadedPath, path)
+	}
+	if loaded.Addr != cfg.Addr || loaded.Root != videoDir {
+		t.Fatalf("loaded = %+v", loaded)
+	}
+	if loaded.Tags.Sections["00"].Label != "Public" {
+		t.Fatalf("sections = %+v", loaded.Tags.Sections)
+	}
+}
+
+func TestTagsFromEntriesValidation(t *testing.T) {
+	_, err := TagsFromEntries(
+		[]TagEntry{{Code: "1", Label: "Bad"}},
+		nil,
+	)
+	if err == nil {
+		t.Fatal("expected error for invalid section code")
+	}
+	_, err = TagsFromEntries(nil, []TagEntry{{Code: "A", Label: "Bad"}})
+	if err == nil {
+		t.Fatal("expected error for invalid property code")
+	}
+	_, err = TagsFromEntries([]TagEntry{{Code: "00", Label: "  "}}, nil)
+	if err == nil {
+		t.Fatal("expected error for empty label")
+	}
+	_, err = TagsFromEntries(
+		[]TagEntry{{Code: "00", Label: "A"}, {Code: "00", Label: "B"}},
+		nil,
+	)
+	if err == nil {
+		t.Fatal("expected error for duplicate section")
+	}
+	tags, err := TagsFromEntries(
+		[]TagEntry{{Code: "00", Label: "Public", Search: []string{" pub ", ""}}},
+		[]TagEntry{{Code: "m", Label: "Must"}},
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := tags.Sections["00"].Search; len(got) != 1 || got[0] != "pub" {
+		t.Fatalf("search = %v", got)
+	}
+}
+
+func TestKeywordsFromList(t *testing.T) {
+	got, err := KeywordsFromList([]string{" clear sky ", "black background", "clear sky"})
+	if err == nil {
+		t.Fatal("expected duplicate error")
+	}
+	got, err = KeywordsFromList([]string{" clear sky ", "black background"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(got) != 2 || got[0] != "black background" || got[1] != "clear sky" {
+		t.Fatalf("keywords = %v", got)
+	}
+	_, err = KeywordsFromList([]string{"  "})
+	if err == nil {
+		t.Fatal("expected empty keyword error")
+	}
+}
+
+func TestSaveKeywordsRoundTrip(t *testing.T) {
+	dir := t.TempDir()
+	videoDir := t.TempDir()
+	cfg := Config{
+		Root:     videoDir,
+		Addr:     "127.0.0.1:9898",
+		Exts:     map[string]bool{"mp4": true},
+		Keywords: []string{"clear sky", "black background"},
+	}
+	path := filepath.Join(dir, FileName)
+	if err := Save(path, cfg); err != nil {
+		t.Fatal(err)
+	}
+	loaded, _, err := loadFromDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(loaded.Keywords) != 2 || loaded.Keywords[0] != "clear sky" {
+		t.Fatalf("keywords = %v", loaded.Keywords)
 	}
 }

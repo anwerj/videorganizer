@@ -1,43 +1,73 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 	"sort"
 
 	"github.com/anwerj/videorganizer/config"
 )
 
-type tagEntry struct {
-	Code   string   `json:"code"`
-	Label  string   `json:"label"`
-	Search []string `json:"search,omitempty"`
-}
-
 type tagsResponse struct {
-	Sections   []tagEntry `json:"sections"`
-	Properties []tagEntry `json:"properties"`
+	Sections   []config.TagEntry `json:"sections"`
+	Properties []config.TagEntry `json:"properties"`
+	Keywords   []string          `json:"keywords"`
 }
 
-func tagsFromConfig(tags config.Tags) tagsResponse {
-	sections := make([]tagEntry, 0, len(tags.Sections))
-	for code, def := range tags.Sections {
-		sections = append(sections, tagEntry{Code: code, Label: def.Label, Search: def.Search})
+func catalogFromConfig(cfg config.Config) tagsResponse {
+	resp := tagsResponse{
+		Sections:   make([]config.TagEntry, 0, len(cfg.Tags.Sections)),
+		Properties: make([]config.TagEntry, 0, len(cfg.Tags.Properties)),
+		Keywords:   cfg.Keywords,
 	}
-	sort.Slice(sections, func(i, j int) bool { return sections[i].Code < sections[j].Code })
-
-	properties := make([]tagEntry, 0, len(tags.Properties))
-	for code, def := range tags.Properties {
-		properties = append(properties, tagEntry{Code: code, Label: def.Label, Search: def.Search})
+	if resp.Keywords == nil {
+		resp.Keywords = []string{}
 	}
-	sort.Slice(properties, func(i, j int) bool { return properties[i].Code < properties[j].Code })
+	for code, def := range cfg.Tags.Sections {
+		resp.Sections = append(resp.Sections, config.TagEntry{Code: code, Label: def.Label, Search: def.Search})
+	}
+	sort.Slice(resp.Sections, func(i, j int) bool { return resp.Sections[i].Code < resp.Sections[j].Code })
 
-	return tagsResponse{Sections: sections, Properties: properties}
+	for code, def := range cfg.Tags.Properties {
+		resp.Properties = append(resp.Properties, config.TagEntry{Code: code, Label: def.Label, Search: def.Search})
+	}
+	sort.Slice(resp.Properties, func(i, j int) bool { return resp.Properties[i].Code < resp.Properties[j].Code })
+
+	return resp
 }
 
 func (a *API) Tags(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+	switch r.Method {
+	case http.MethodGet:
+		writeJSON(w, catalogFromConfig(a.cfg))
+	case http.MethodPut:
+		a.putTags(w, r)
+	default:
 		handleError(w, "method not allowed", http.StatusMethodNotAllowed, nil)
+	}
+}
+
+func (a *API) putTags(w http.ResponseWriter, r *http.Request) {
+	var body tagsResponse
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		handleError(w, "invalid request body", http.StatusBadRequest, err)
 		return
 	}
-	writeJSON(w, tagsFromConfig(a.cfg.Tags))
+	tags, err := config.TagsFromEntries(body.Sections, body.Properties)
+	if err != nil {
+		handleError(w, err.Error(), http.StatusBadRequest, nil)
+		return
+	}
+	keywords, err := config.KeywordsFromList(body.Keywords)
+	if err != nil {
+		handleError(w, err.Error(), http.StatusBadRequest, nil)
+		return
+	}
+	a.cfg.Tags = tags
+	a.cfg.Keywords = keywords
+	if err := config.Save(a.configPath, a.cfg); err != nil {
+		handleError(w, "could not save config", http.StatusInternalServerError, err)
+		return
+	}
+	writeJSON(w, catalogFromConfig(a.cfg))
 }

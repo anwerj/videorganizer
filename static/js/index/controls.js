@@ -1,4 +1,6 @@
 // /static/js/controls.js
+import { openGoogleImageSearch } from "../shared/google-image-search.js";
+
 export function initControls({ player, tree, modals }) {
     const mainVideo = document.getElementById("mainVideo");
     const btnPlay = document.getElementById("btnPlay");
@@ -9,6 +11,7 @@ export function initControls({ player, tree, modals }) {
     const vol = document.getElementById("vol");
     const btnFull = document.getElementById("btnFull");
     const btnRotate = document.getElementById("btnRotate");
+    const btnGoogleSearch = document.getElementById("btnGoogleSearch");
     const btnTimestamps = document.getElementById("btnTimestamps");
     const newNameInput = document.getElementById("newName");
     const titleInput = document.getElementById("editTitle");
@@ -74,6 +77,20 @@ export function initControls({ player, tree, modals }) {
     // rotate
     btnRotate?.addEventListener("click", () => { player.rotateVideoClockwise?.(); });
 
+    // google image search
+    btnGoogleSearch?.addEventListener("click", () => {
+        void player.captureCurrentFramePngBlob?.().then(blob => {
+            if (!blob) return;
+            return openGoogleImageSearch(blob);
+        });
+    });
+
+    function updateGoogleSearchButton() {
+        if (!btnGoogleSearch) return;
+        const ready = !!(mainVideo?.videoWidth && mainVideo?.videoHeight);
+        btnGoogleSearch.disabled = !ready;
+    }
+
     // timestamps button
     btnTimestamps?.addEventListener("click", () => {
         const path = player.getCurrentPath?.();
@@ -91,7 +108,10 @@ export function initControls({ player, tree, modals }) {
 
     // Update timestamp button visibility when video loads or markers change
     mainVideo.addEventListener("loadedmetadata", updateTimestampsButton);
+    mainVideo.addEventListener("loadedmetadata", updateGoogleSearchButton);
+    mainVideo.addEventListener("emptied", updateGoogleSearchButton);
     window.addEventListener("markers-changed", updateTimestampsButton);
+    updateGoogleSearchButton();
 
     // global keyboard shortcuts (small set)
     document.addEventListener("keydown", (ev) => {
@@ -122,6 +142,7 @@ export function initControls({ player, tree, modals }) {
         if (k === "r") { ev.preventDefault(); player.rotateVideoClockwise?.(); return; }
         if (k === "e") { ev.preventDefault(); window.dispatchEvent(new CustomEvent("open-rename-modal")); return; }
         if (k === "l") { ev.preventDefault(); window.dispatchEvent(new CustomEvent("open-filelist-modal")); return; }
+        if (ev.key === ",") { ev.preventDefault(); window.dispatchEvent(new CustomEvent("open-settings-modal")); return; }
         if (k === "z") { ev.preventDefault(); backward(3); return }
         if (k === "x") { ev.preventDefault(); forward(3); return }
         if (k === "t") { ev.preventDefault(); player.addCurrentTimestamp?.(); return }

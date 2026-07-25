@@ -1,9 +1,11 @@
 // /static/js/modals.js
-export function initModals(elms, { editTags, player } = {}) {
+export function initModals(elms, { editTags, player, settings } = {}) {
     const renameModalEl = document.getElementById("renameModal");
     const fileListModalEl = document.getElementById("fileListModal");
+    const settingsModalEl = document.getElementById("settingsModal");
     const renameModal = (typeof bootstrap !== "undefined" && renameModalEl) ? bootstrap.Modal.getOrCreateInstance(renameModalEl) : null;
     const fileListModal = (typeof bootstrap !== "undefined" && fileListModalEl) ? bootstrap.Modal.getOrCreateInstance(fileListModalEl) : null;
+    const settingsModal = (typeof bootstrap !== "undefined" && settingsModalEl) ? bootstrap.Modal.getOrCreateInstance(settingsModalEl) : null;
     const titleInput = elms.editTitle;
     const msgEl = elms.msg;
 
@@ -35,14 +37,27 @@ export function initModals(elms, { editTags, player } = {}) {
         editTags?.reloadFromPlayer?.();
     });
 
+    async function openSettings() {
+        if (!settingsModal) return;
+        await settings?.loadCatalog?.();
+        settingsModal.show();
+    }
+    function closeSettings() { if (settingsModal) settingsModal.hide(); }
+
+    settingsModalEl?.addEventListener("hidden.bs.modal", () => {
+        if (elms.settingsMsg) elms.settingsMsg.textContent = "";
+        settings?.cancelForm?.();
+        settings?.renderAll?.();
+    });
+
+    document.getElementById("btnSettings")?.addEventListener("click", () => openSettings());
+
     function openFileList() {
         if (!fileListModal) return;
-        // populate list — will be handled by tree module on event 'populate-filelist'
         fileListModal.show();
     }
     function closeFileList() { if (fileListModal) fileListModal.hide(); }
 
-    // listen for events from tree to populate the file list
     window.addEventListener("populate-filelist", (ev) => {
         const container = elms.fullFileList;
         if (!container) return;
@@ -61,9 +76,9 @@ export function initModals(elms, { editTags, player } = {}) {
         container.appendChild(wrap);
     });
 
-    // window events mapping (for keyboard triggers)
     window.addEventListener("open-rename-modal", () => openRename(true));
     window.addEventListener("open-filelist-modal", () => openFileList());
+    window.addEventListener("open-settings-modal", () => openSettings());
 
-    return { openRename, closeRename, openFileList, closeFileList, refreshEditForm, isRenameOpen };
+    return { openRename, closeRename, openFileList, closeFileList, openSettings, closeSettings, refreshEditForm, isRenameOpen };
 }

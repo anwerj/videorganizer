@@ -2,6 +2,7 @@
     "Root": "/Users/you/videos",
     "Addr": "127.0.0.1:9898",
     "Exts": { "mp4": true, "mkv": true, "mov": true, "webm": true },
+    "Keywords": ["black background", "clear sky"],
     "Tags": {
         "sections": {
             "00": { "label": "Public" },

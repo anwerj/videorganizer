@@ -10,12 +10,13 @@ import (
 )
 
 type API struct {
-	cfg      config.Config
-	staticFS embed.FS
+	cfg        config.Config
+	configPath string
+	staticFS   embed.FS
 }
 
-func New(cfg config.Config, staticFS embed.FS) *API {
-	return &API{cfg: cfg, staticFS: staticFS}
+func New(cfg config.Config, configPath string, staticFS embed.FS) *API {
+	return &API{cfg: cfg, configPath: configPath, staticFS: staticFS}
 }
 
 func writeJSON(w http.ResponseWriter, v any) {

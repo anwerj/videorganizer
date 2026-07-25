@@ -1,5 +1,7 @@
 import { splitName, extractTsFromBase, encodeMarkers } from "../shared/utils.js";
 import { parseFilename, composeFilenameBase, basenameFromPath } from "../shared/filename-tags.js";
+import { initTitleAutocomplete } from "../shared/title-autocomplete.js";
+import { fetchCatalog, normalizeCatalog } from "../shared/catalog-api.js";
 
 export function initEditTags(api, elms, { player } = {}) {
     const newNameInput = elms.newName;
@@ -9,22 +11,26 @@ export function initEditTags(api, elms, { player } = {}) {
     const propertyPaletteEl = elms.propertyPalette;
     const msgEl = elms.msg;
 
-    let catalog = { sections: [], properties: [] };
+    let catalog = { sections: [], properties: [], keywords: [] };
+    let catalogLoaded = false;
     let selectedSections = [];
     let selectedProperties = new Set();
     let ext = "";
     let parsedPath = null;
 
-    async function ensureCatalog() {
-        if (catalog.sections.length || catalog.properties.length) return catalog;
+    async function loadCatalog() {
         try {
-            const res = await fetch(api.tags);
-            if (!res.ok) throw new Error(await res.text());
-            catalog = await res.json();
+            catalog = await fetchCatalog(api);
+            catalogLoaded = true;
         } catch (e) {
             console.error("failed to load tags", e);
         }
         return catalog;
+    }
+
+    async function ensureCatalog() {
+        if (catalogLoaded) return catalog;
+        return loadCatalog();
     }
 
     function sectionByCode(code) {
@@ -52,6 +58,13 @@ export function initEditTags(api, elms, { player } = {}) {
         const full = `${base}${suffix}${ext}`;
         if (newNameInput) newNameInput.value = full;
         if (previewEl) previewEl.textContent = full || "—";
+    }
+
+    function pruneSelections() {
+        const sectionCodes = new Set(catalog.sections.map((s) => s.code));
+        const propertyCodes = new Set(catalog.properties.map((p) => p.code));
+        selectedSections = selectedSections.filter((c) => sectionCodes.has(c));
+        selectedProperties = new Set([...selectedProperties].filter((c) => propertyCodes.has(c)));
     }
 
     function sectionListOrder() {
@@ -83,16 +96,26 @@ export function initEditTags(api, elms, { player } = {}) {
         renderAll();
     }
 
+    function makeActionButton(title, text, onClick) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.title = title;
+        btn.textContent = text;
+        btn.onclick = (e) => { e.stopPropagation(); onClick(); };
+        return btn;
+    }
+
     function renderSectionList() {
         if (!sectionListEl) return;
         sectionListEl.innerHTML = "";
+
         if (!catalog.sections.length) {
             const empty = document.createElement("div");
             empty.className = "section-list-empty small-muted";
             empty.textContent = "No sections in config";
             sectionListEl.appendChild(empty);
-            return;
         }
+
         for (const code of sectionListOrder()) {
             const def = sectionByCode(code);
             const idx = selectedSections.indexOf(code);
@@ -109,27 +132,15 @@ export function initEditTags(api, elms, { player } = {}) {
                 : `<span class="section-row-code">${code}</span><span class="section-row-label">${def?.label || code}</span>`;
             main.title = isSelected ? "Click to remove" : "Click to add";
             main.onclick = () => toggleSection(code);
-
             row.appendChild(main);
 
             if (isSelected) {
                 const actions = document.createElement("span");
                 actions.className = "section-row-actions";
-
-                const up = document.createElement("button");
-                up.type = "button";
-                up.title = "Move up";
-                up.textContent = "↑";
+                const up = makeActionButton("Move up", "↑", () => moveSection(code, -1));
                 up.disabled = idx === 0;
-                up.onclick = (e) => { e.stopPropagation(); moveSection(code, -1); };
-
-                const down = document.createElement("button");
-                down.type = "button";
-                down.title = "Move down";
-                down.textContent = "↓";
+                const down = makeActionButton("Move down", "↓", () => moveSection(code, 1));
                 down.disabled = idx === selectedSections.length - 1;
-                down.onclick = (e) => { e.stopPropagation(); moveSection(code, 1); };
-
                 actions.append(up, down);
                 row.appendChild(actions);
             }
@@ -141,6 +152,7 @@ export function initEditTags(api, elms, { player } = {}) {
     function renderPropertyPalette() {
         if (!propertyPaletteEl) return;
         propertyPaletteEl.innerHTML = "";
+
         for (const p of catalog.properties) {
             const btn = document.createElement("button");
             btn.type = "button";
@@ -192,9 +204,23 @@ export function initEditTags(api, elms, { player } = {}) {
         return fname;
     }
 
-    titleInput?.addEventListener("input", () => syncOutput());
+    async function onCatalogChanged(ev) {
+        if (ev.detail) {
+            catalog = normalizeCatalog(ev.detail);
+            catalogLoaded = true;
+        } else {
+            catalogLoaded = false;
+            await loadCatalog();
+        }
+        pruneSelections();
+        renderAll();
+    }
 
+    titleInput?.addEventListener("input", () => syncOutput());
     window.addEventListener("markers-changed", () => syncOutput());
+    window.addEventListener("catalog-changed", onCatalogChanged);
+
+    initTitleAutocomplete(titleInput, () => catalog.keywords || []);
 
     return {
         loadFromFilename,

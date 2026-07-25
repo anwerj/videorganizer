@@ -6,6 +6,7 @@ import { initModals } from "./modals.js";
 import { initRenameFlow } from "./rename-flow.js";
 
 import { initEditTags } from "./edit-tags.js";
+import { initSettings } from "./settings.js";
 import { initThemes } from "./themes.js";
 
 const api = {
@@ -13,15 +14,14 @@ const api = {
   stream: (p) => "/api/stream?path=" + encodeURIComponent(p),
   rename: "/api/rename",
   tags: "/api/tags",
+  putTags: "/api/tags",
 };
 
 const el = id => document.getElementById(id);
 
-// required DOM nodes
 const elements = {
   leftTree: el("leftTree"),
   treeScroll: el("treeScroll"),
-  themeBar: el("themeBar"),
   mainVideo: el("mainVideo"),
   seekOverlay: el("seekOverlay"),
   previewCanvasWrap: el("previewCanvasWrap"),
@@ -35,6 +35,13 @@ const elements = {
   msg: el("msg"),
   fileLabel: el("fileLabel"),
   fullFileList: el("fullFileList"),
+  settingsThemes: el("settingsThemes"),
+  settingsSectionList: el("settingsSectionList"),
+  settingsPropertyPalette: el("settingsPropertyPalette"),
+  settingsKeywordList: el("settingsKeywordList"),
+  settingsKeywordAdd: el("settingsKeywordAdd"),
+  settingsKeywordAddBtn: el("settingsKeywordAddBtn"),
+  settingsMsg: el("settingsMsg"),
 };
 
 if (!elements.leftTree) {
@@ -42,17 +49,16 @@ if (!elements.leftTree) {
   throw new Error("Missing #leftTree");
 }
 
-// init
 initThemes();
+const settings = initSettings(api, elements);
 const tree = initTree(api, elements);
 const player = initPlayer(api, elements, { getSiblingPaths: tree.getSiblingPaths });
 const editTags = initEditTags(api, elements, { player });
-const modals = initModals(elements, { editTags, player });
+const modals = initModals(elements, { editTags, player, settings });
 const renameFlow = initRenameFlow(api, elements, { tree, player, editTags, modals });
 
 initControls({ player, tree, modals });
 
-// wire events: when tree emits file-selected, update player
 window.addEventListener('file-selected', async (e) => {
   const path = e.detail;
   if (path) player.setCurrent?.(path, true);
@@ -60,14 +66,12 @@ window.addEventListener('file-selected', async (e) => {
   await editTags.reloadFromPlayer?.();
 });
 
-// handle hashchange
 window.addEventListener('hashchange', async () => {
   const h = location.hash ? decodeURIComponent(location.hash.slice(1)) : null;
   if (h) player.setCurrent?.(h, true);
   await editTags.reloadFromPlayer?.();
 });
 
-// load tree (async); triggers initial selection
 await tree.loadTree();
 const h = location.hash ? decodeURIComponent(location.hash.slice(1)) : null;
 if (h) {
@@ -76,10 +80,6 @@ if (h) {
   await editTags.reloadFromPlayer?.();
 }
 
-
-
-
-// expose for debugging
-window._app = { api, tree, player, modals, renameFlow, editTags };
+window._app = { api, tree, player, modals, renameFlow, editTags, settings };
 
 console.log("main.js initialized");

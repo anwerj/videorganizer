@@ -56,44 +56,37 @@ body {
     padding-bottom: 8px;
 }
 
-.theme-bar {
+.settings-bar-btn {
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.4rem 0.35rem;
-    border-top: 1px solid var(--tree-accordion-border);
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    margin: 0.35rem 0 0.5rem;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid var(--tree-accordion-border);
+    border-radius: var(--modal-section-radius);
     background: var(--theme-bar-surface);
-    transition: padding 0.15s ease;
-}
-
-.theme-bar:hover {
-    padding: 0.55rem 0.35rem 0.65rem;
-}
-
-.theme-bar-label {
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
     color: var(--theme-muted);
-    flex-shrink: 0;
-    cursor: default;
-    transition: color 0.15s;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: var(--font-ui);
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 
-.theme-bar:hover .theme-bar-label {
+.settings-bar-btn:hover {
     color: var(--theme-text);
+    border-color: rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.06);
 }
 
-.theme-bar-options {
-    display: none;
+.theme-picker-options {
+    display: flex;
     flex-wrap: wrap;
     gap: 0.35rem;
-}
-
-.theme-bar:hover .theme-bar-options {
-    display: flex;
 }
 
 .theme-btn {
@@ -548,6 +541,32 @@ body {
     color: #fff;
 }
 
+.section-row-static {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+    padding: 0.4rem 0.5rem;
+    font-size: var(--tag-btn-font-size);
+    font-family: var(--font-ui);
+    text-align: left;
+}
+
+.settings-section-list {
+    max-height: 14rem;
+}
+
+.settings-property-palette .tag-btn-actions,
+.settings-tag-actions {
+    opacity: 1;
+}
+
+.tag-btn-static {
+    cursor: default;
+    pointer-events: none;
+}
+
 .section-row-order {
     flex: 0 0 1.25rem;
     font-family: var(--font-mono);
@@ -672,4 +691,218 @@ body {
 
 .tag-btn.active .tag-btn-label {
     color: var(--theme-text);
+}
+
+.tag-btn-wrap {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+.tag-btn-wrap:hover .tag-btn-actions,
+.tag-btn-wrap:focus-within .tag-btn-actions {
+    opacity: 1;
+}
+
+.tag-btn-actions {
+    display: flex;
+    justify-content: center;
+    gap: 0.15rem;
+    margin-top: 0.15rem;
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.tag-btn-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.35);
+    color: #cfe7ff;
+    font-size: 0.65rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.tag-btn-actions button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+.tag-add-link {
+    display: block;
+    width: 100%;
+    margin-top: 0.35rem;
+    padding: 0.35rem 0.5rem;
+    border: none;
+    border-radius: var(--modal-section-radius);
+    background: transparent;
+    color: var(--theme-accent);
+    font-size: 0.8rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.tag-add-link:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+}
+
+.property-palette .tag-add-link {
+    width: auto;
+    flex: 0 0 100%;
+}
+
+.tag-form-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+    padding: 0.55rem 0.6rem;
+    border-radius: var(--modal-section-radius);
+    border: 1px solid rgba(225, 242, 255, 0.22);
+    background: rgba(0, 0, 0, 0.2);
+    flex: 0 0 100%;
+    width: 100%;
+}
+
+.property-palette .tag-form-card {
+    flex: 0 0 100%;
+}
+
+.tag-form-title {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--theme-muted);
+}
+
+.tag-form-code {
+    max-width: 4rem;
+    font-family: var(--font-mono);
+}
+
+.tag-form-actions {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.15rem;
+}
+
+.title-input-wrap {
+    position: relative;
+}
+
+.title-autocomplete {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    z-index: 20;
+    margin-top: 0.2rem;
+    padding: 0.25rem 0;
+    border-radius: var(--modal-input-radius);
+    border: 1px solid rgba(225, 242, 255, 0.2);
+    background: rgba(12, 18, 32, 0.98);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.45);
+    max-height: 12rem;
+    overflow-y: auto;
+}
+
+.title-ac-item {
+    display: block;
+    width: 100%;
+    padding: 0.4rem 0.65rem;
+    border: none;
+    background: transparent;
+    color: var(--theme-text);
+    font-size: 0.85rem;
+    font-family: var(--font-ui);
+    text-align: left;
+    cursor: pointer;
+}
+
+.title-ac-item:hover,
+.title-ac-item.active {
+    background: rgba(75, 99, 160, 0.35);
+}
+
+.title-ac-item strong {
+    color: var(--theme-accent);
+    font-weight: 600;
+}
+
+.keyword-manage {
+    margin-top: 0.5rem;
+}
+
+.keyword-manage-toggle {
+    display: none;
+}
+
+.keyword-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-bottom: 0.45rem;
+    max-height: 8rem;
+    overflow-y: auto;
+}
+
+.keyword-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--theme-text);
+}
+
+.keyword-row-text {
+    flex: 1;
+    min-width: 0;
+    word-break: break-word;
+}
+
+.keyword-row button {
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    border: none;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    color: #cfe7ff;
+    font-size: 0.75rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.keyword-row button:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+}
+
+.keyword-add-row {
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+}
+
+.keyword-add-row input {
+    flex: 1;
+    min-width: 0;
+}
+
+.keyword-empty {
+    font-size: 0.8rem;
+    color: var(--theme-muted);
+    font-style: italic;
+    margin-bottom: 0.45rem;
 }

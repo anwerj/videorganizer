@@ -273,6 +273,24 @@ export function initPlayer(api, elms, helpers = {}) {
         updateTimeDisplay();
     }
 
+    function captureCurrentFramePngBlob() {
+        if (!mainVideo?.videoWidth || !mainVideo?.videoHeight) return Promise.resolve(null);
+        return new Promise((resolve, reject) => {
+            try {
+                const canvas = document.createElement("canvas");
+                canvas.width = mainVideo.videoWidth;
+                canvas.height = mainVideo.videoHeight;
+                canvas.getContext("2d").drawImage(mainVideo, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(blob => {
+                    if (blob) resolve(blob);
+                    else reject(new Error("png capture failed"));
+                }, "image/png");
+            } catch (e) {
+                reject(e);
+            }
+        });
+    }
+
     return {
         setCurrent,
         rotateVideoClockwise,
@@ -289,5 +307,6 @@ export function initPlayer(api, elms, helpers = {}) {
                 addTimestampMs(Math.round(mainVideo.currentTime * 1000), MARKER_AUDIO);
             }
         },
+        captureCurrentFramePngBlob,
     };
 }

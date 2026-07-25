@@ -55,24 +55,20 @@ export function loadTheme() {
     return DEFAULT_THEME;
 }
 
-export function initThemes() {
-    const bar = document.getElementById("themeBar");
-    if (!bar) return;
-
+export function renderThemePicker(container, { onPick } = {}) {
+    if (!container) return;
+    container.innerHTML = "";
     const current = applyTheme(loadTheme());
 
-    const label = document.createElement("span");
-    label.className = "theme-bar-label";
-    label.textContent = "Themes";
-
     const options = document.createElement("div");
-    options.className = "theme-bar-options";
+    options.className = "theme-picker-options";
 
     function pickTheme(id) {
         const theme = normalizeTheme(id);
         if (theme === loadTheme()) return;
         saveTheme(theme);
-        location.reload();
+        if (onPick) onPick(theme);
+        else location.reload();
     }
 
     for (const id of THEMES) {
@@ -86,8 +82,9 @@ export function initThemes() {
         options.appendChild(btn);
     }
 
-    bar.appendChild(label);
-    bar.appendChild(options);
+    container.appendChild(options);
+}
 
-    return { pickTheme, loadTheme, applyTheme };
+export function initThemes() {
+    applyTheme(loadTheme());
 }

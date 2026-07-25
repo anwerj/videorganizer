@@ -31,7 +31,9 @@
         <!-- Left tree (fixed width) -->
         <aside id="leftTree" class="panel tree-panel">
             <div id="treeScroll" class="tree-scroll"></div>
-            <div id="themeBar" class="theme-bar"></div>
+            <button id="btnSettings" type="button" class="settings-bar-btn" title="Settings (,)">
+                <i class="bi bi-gear"></i> Settings
+            </button>
         </aside>
 
         <!-- Main area: video takes all remaining space -->
@@ -68,6 +70,8 @@
                             title="Volume" />
                         <button id="btnFull" class="btn btn-sm btn-light ms-2" title="Fullscreen">[ ]</button>
                         <button id="btnRotate" class="btn btn-sm btn-light ms-2" title="Rotate">⤾</button>
+                        <button id="btnGoogleSearch" class="btn btn-sm btn-light ms-2"
+                            title="Copy frame to clipboard and open Google Images" disabled><i class="bi bi-google"></i></button>
                         <button id="btnTimestamps" class="btn btn-sm btn-light ms-2" title="View Timestamps"
                             style="display:none">🖻</button>
                     </div>
@@ -119,7 +123,9 @@
 
                             <section class="edit-block mb-3">
                                 <label class="form-label edit-label" for="editTitle">Title</label>
-                                <input id="editTitle" type="text" class="form-control edit-input" placeholder="Human-readable name" />
+                                <div class="title-input-wrap">
+                                    <input id="editTitle" type="text" class="form-control edit-input" placeholder="Human-readable name" autocomplete="off" />
+                                </div>
                             </section>
 
                             <section class="edit-block mb-2">
@@ -135,6 +141,48 @@
                 <div class="modal-footer border-0 pt-0">
                     <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" id="btnConfirmRename" class="btn btn-primary btn-sm px-4">Rename</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content edit-modal settings-modal">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title" id="settingsModalLabel">Settings</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-3">
+                    <section class="edit-block mb-3">
+                        <label class="edit-label mb-2">Appearance</label>
+                        <div id="settingsThemes" class="theme-picker-options"></div>
+                    </section>
+
+                    <section class="edit-block mb-3">
+                        <label class="edit-label mb-2">Sections</label>
+                        <div id="settingsSectionList" class="section-list settings-section-list" aria-label="Sections"></div>
+                    </section>
+
+                    <section class="edit-block mb-3">
+                        <label class="edit-label mb-2">Properties</label>
+                        <div id="settingsPropertyPalette" class="tag-palette property-palette settings-property-palette" aria-label="Properties"></div>
+                    </section>
+
+                    <section class="edit-block mb-2">
+                        <label class="edit-label mb-2">Keywords</label>
+                        <div id="settingsKeywordList" class="keyword-list mb-2" aria-label="Keywords"></div>
+                        <div class="keyword-add-row">
+                            <input id="settingsKeywordAdd" type="text" class="form-control form-control-sm edit-input" placeholder="New keyword" />
+                            <button id="settingsKeywordAddBtn" type="button" class="btn btn-outline-light btn-sm">Add</button>
+                        </div>
+                    </section>
+
+                    <div id="settingsMsg" class="edit-msg mono mt-2"></div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-light btn-sm" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
